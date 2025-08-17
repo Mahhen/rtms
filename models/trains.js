@@ -29,6 +29,10 @@ const trainSchema = new mongoose.Schema({
   destination: {
     type: String,
     required: true
+  },
+  halts: {
+    type: [String],
+    required : true
   }
 })
 

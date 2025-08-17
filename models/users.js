@@ -11,7 +11,7 @@ const roleSchema = new mongoose.Schema({
 const loginSchema = new mongoose.Schema({
   login_id: { type: String, required: true },
   login_username: { type: String, required: true },
-  login_password: { type: String, required: true },
+  login_password_hash: { type: String, required: true },
   role: { type: roleSchema, required: true }
 }, { _id: false });
 
