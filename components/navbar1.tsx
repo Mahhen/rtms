@@ -61,27 +61,24 @@ const Navbar1 = ({
   menu = [
     { title: "Home", url: "#" },
     {
-      title: "Products",
+      title: "Search Trains",
       url: "#",
       items: [
         
       ],
     },
     {
-      title: "Resources",
+      title: "My bookings",
       url: "#",
       items: [
         
       ],
     },
     {
-      title: "Pricing",
+      title: "Profile",
       url: "#",
     },
-    {
-      title: "Blog",
-      url: "#",
-    },
+   
   ],
   auth = {
     login: { title: "Login", url: "#" },
