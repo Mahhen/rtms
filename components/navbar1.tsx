@@ -1,3 +1,5 @@
+"use client"
+
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
 
 
@@ -24,6 +26,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { shouldNavVis } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 interface MenuItem {
   title: string;
@@ -83,8 +87,10 @@ const Navbar1 = ({
     signup: { title: "Sign up", url: "#" },
   },
 }: Navbar1Props) => {
+  const currentPath = usePathname();
+
   return (
-    <section className="py-4">
+    <section className={`py-4 ${shouldNavVis(currentPath) ? '' : 'hidden'}`}>
       <div className="container">
         {/* Desktop Menu */}
         <nav className="hidden justify-between lg:flex">
