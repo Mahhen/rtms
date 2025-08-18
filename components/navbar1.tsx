@@ -1,5 +1,7 @@
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
 
+
+
 import {
   Accordion,
   AccordionContent,
@@ -63,16 +65,12 @@ const Navbar1 = ({
     {
       title: "Search Trains",
       url: "#",
-      items: [
-        
-      ],
+      
     },
     {
       title: "My bookings",
-      url: "#",
-      items: [
-        
-      ],
+      url: "/trainbooking",
+      
     },
     {
       title: "Profile",
