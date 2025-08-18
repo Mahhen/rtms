@@ -69,7 +69,7 @@ const Navbar1 = ({
     },
     {
       title: "My bookings",
-      url: "/trainbooking",
+      url: "/booking",
       
     },
     {
