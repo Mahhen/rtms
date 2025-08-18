@@ -10,7 +10,7 @@ if (!cached) {
 }
 
 async function dbConnect() {
-  const MONGODB_URI = "mongodb://localhost:27017/rtms";
+  const MONGODB_URI = process.env.MONGOURI;
 
   if (!MONGODB_URI) {
     throw new Error(
