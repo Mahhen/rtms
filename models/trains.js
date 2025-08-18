@@ -31,7 +31,7 @@ const trainSchema = new mongoose.Schema({
     required: true
   },
   halts: {
-    type: [String],
+    type: [Number],
     required : true
   }
 })
