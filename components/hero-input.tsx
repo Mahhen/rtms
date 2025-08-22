@@ -251,13 +251,6 @@ export const HeroInput = () => {
                     <Form {...pnrform}>
                         <form onSubmit={pnrform.handleSubmit(onSubmitPNRLookup)}>
                             <div className="flex gap-4 items-center">
-                                <input
-                                    type="text"
-                                    placeholder="Enter PNR Number"
-                                    value={pnr}
-                                    onChange={(e) => setPnr(e.target.value)}
-                                    className="p-3 border border-white/50 bg-white/50 rounded-lg w-full outline-none text-black hidden"
-                                />
                                 <FormField
                                     control={pnrform.control}
                                     name="pnr"
