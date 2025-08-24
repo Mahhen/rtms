@@ -1,8 +1,7 @@
 "use client";
 
-import { Star, Shuffle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import {Star} from "lucide-react";
+import {HeroInput} from "@/components/hero-input";
 
 interface Hero3Props {
   heading?: string;
@@ -23,49 +22,7 @@ const Hero3 = ({
   },
   reviews = { count: 200, rating: 5.0 },
 }: Hero3Props) => {
-  const stations = ["Delhi", "Mumbai", "Chennai", "Kolkata", "Bangalore"];
-  const classs = [
-    "AC First Class",
-    "AC Second Class",
-    "AC Third Class",
-    "AC Sleeper",
-    "Sleeper Class",
-    "General Class",
-  ];
 
-  const [activeTab, setActiveTab] = useState<"book" | "pnr">("book");
-  const [fromStation, setFromStation] = useState("");
-  const [toStation, setToStation] = useState("");
-  const [classType, setClassType] = useState("");
-  const [departureDate, setDepartureDate] = useState("");
-  const [pnr, setPnr] = useState("");
-
-  const swapStations = () => {
-    setFromStation(toStation);
-    setToStation(fromStation);
-  };
-
-  const handleSearch = () => {
-    if (activeTab === "book") {
-      if (!fromStation || !toStation || !classType || !departureDate) {
-        alert("Please fill all fields.");
-        return;
-      }
-      if (fromStation === toStation) {
-        alert("From and To stations cannot be the same!");
-        return;
-      }
-      console.log(
-        `Searching trains from ${fromStation} to ${toStation} on ${departureDate} (${classType})`
-      );
-    } else {
-      if (!pnr) {
-        alert("Please enter PNR number.");
-        return;
-      }
-      console.log(`Checking PNR status for ${pnr}`);
-    }
-  };
 
   return (
     <section
@@ -79,7 +36,7 @@ const Hero3 = ({
       <div className="absolute inset-0 bg-black/50"></div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center text-center text-white px-6 max-w-4xl">
+      <div className="relative z-10 flex flex-col items-center text-center text-white px-6 max-w-5xl">
         <h1 className="my-6 text-4xl font-bold lg:text-6xl xl:text-7xl">
           {heading}
         </h1>
@@ -100,128 +57,7 @@ const Hero3 = ({
         </div>
 
         {/* Tabs + Search Box */}
-        <div className="bg-white/20 backdrop-blur-md border border-white/30 shadow-lg 
-          rounded-2xl p-6 w-full max-w-4xl mt-6">
-
-          {/* Tabs */}
-          <div className="flex gap-6 border-b pb-2 mb-4 justify-center">
-            <button
-              onClick={() => setActiveTab("book")}
-              className={`pb-2 font-semibold ${
-                activeTab === "book"
-                  ? "text-rose-400 border-b-2 border-rose-400"
-                  : "text-gray-300"
-              }`}
-            >
-              🚆 Book a Train
-            </button>
-            <button
-              onClick={() => setActiveTab("pnr")}
-              className={`pb-2 font-semibold ${
-                activeTab === "pnr"
-                  ? "text-rose-400 border-b-2 border-rose-400"
-                  : "text-gray-300"
-              }`}
-            >
-              🎫 PNR Status
-            </button>
-          </div>
-
-          {/* Book a Train Form */}
-          {activeTab === "book" ? (
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              {/* From */}
-              <div className="flex items-center border border-white/50 bg-white/50 rounded-lg px-3 py-2 w-full md:w-auto">
-                <select
-                  value={fromStation}
-                  onChange={(e) => setFromStation(e.target.value)}
-                  className="outline-none w-full bg-transparent text-black"
-                >
-                  <option value="">From</option>
-                  {stations.map((station) => (
-                    <option key={station} value={station}>
-                      {station}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={swapStations}
-                  className="ml-2 p-1 hover:bg-white/30 rounded"
-                >
-                  <Shuffle size={16} className="text-black" />
-                </button>
-              </div>
-
-              {/* To */}
-              <div className="flex items-center border border-white/50 bg-white/50 rounded-lg px-3 py-2 w-full md:w-auto">
-                <select
-                  value={toStation}
-                  onChange={(e) => setToStation(e.target.value)}
-                  className="outline-none w-full bg-transparent text-black"
-                >
-                  <option value="">To</option>
-                  {stations.map((station) => (
-                    <option key={station} value={station}>
-                      {station}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Date */}
-              <div className="flex items-center border border-white/50 bg-white/50 rounded-lg px-3 py-2 w-full md:w-auto">
-                <input
-                  type="date"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="outline-none w-full bg-transparent text-black"
-                />
-              </div>
-
-              {/* Class */}
-              <div className="flex items-center border border-white/50 bg-white/50 rounded-lg px-3 py-2 w-full md:w-auto">
-                <select
-                  value={classType}
-                  onChange={(e) => setClassType(e.target.value)}
-                  className="outline-none w-full bg-transparent text-black"
-                >
-                  <option value="">Class</option>
-                  {classs.map((clas) => (
-                    <option key={clas} value={clas}>
-                      {clas}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Search Button */}
-              <Button
-                onClick={handleSearch}
-                className="bg-rose-700 hover:bg-rose-800 text-white rounded-full px-6 py-2 w-full md:w-auto"
-              >
-                Search Trains
-              </Button>
-            </div>
-          ) : (
-            // PNR Form
-            <div className="flex gap-4 items-center">
-              <input
-                type="text"
-                placeholder="Enter PNR Number"
-                value={pnr}
-                onChange={(e) => setPnr(e.target.value)}
-                className="p-3 border border-white/50 bg-white/50 rounded-lg w-full outline-none text-black"
-              />
-              <Button
-                onClick={handleSearch}
-                className="bg-rose-700 hover:bg-rose-800 text-white rounded-full px-6 py-2"
-              >
-                Check Status
-              </Button>
-            </div>
-          )}
-        </div>
+        <HeroInput />
       </div>
     </section>
   );
