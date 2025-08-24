@@ -59,7 +59,7 @@ interface Navbar1Props {
 
 const Navbar1 = ({
   logo = {
-    url: "#",
+    url: "/",
     src: "/logo.png",
     alt: "logo",
     title: "RailBuddy.com",
@@ -68,7 +68,7 @@ const Navbar1 = ({
     { title: "Home", url: "#" },
     {
       title: "Search Trains",
-      url: "#",
+      url: "/",
       
     },
     {
@@ -83,8 +83,8 @@ const Navbar1 = ({
    
   ],
   auth = {
-    login: { title: "Login", url: "#" },
-    signup: { title: "Sign up", url: "#" },
+    login: { title: "Login", url: "/login" },
+    signup: { title: "Sign up", url: "/register" },
   },
 }: Navbar1Props) => {
   const currentPath = usePathname();
