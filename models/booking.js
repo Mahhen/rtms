@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
 // Define the schema
 const bookingSchema = new mongoose.Schema({
   book_id: { type: String, required: true },
