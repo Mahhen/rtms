@@ -101,7 +101,7 @@ export const HeroInput = () => {
 
     return (
         <div className="bg-white/20 backdrop-blur-md border border-white/30 shadow-lg
-          rounded-2xl p-6 w-full max-w-3xl mt-6">
+          rounded-2xl p-6 w-full max-w-3xl mt-6 dark">
 
             <Tabs defaultValue="book">
                 <TabsList className="bg-white/10">
