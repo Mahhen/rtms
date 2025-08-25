@@ -1,6 +1,6 @@
 "use client"
 
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import {LogOutIcon, Menu} from "lucide-react";
 
 
 
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { shouldNavVis } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import {useEffect, useState} from "react";
 
 interface MenuItem {
   title: string;
@@ -54,6 +55,10 @@ interface Navbar1Props {
       title: string;
       url: string;
     };
+    logout: {
+      title: string;
+      url: string;
+    }
   };
 }
 
@@ -85,9 +90,27 @@ const Navbar1 = ({
   auth = {
     login: { title: "Login", url: "/login" },
     signup: { title: "Sign up", url: "/register" },
+    logout: { title: "Logout", url: "/" },
   },
 }: Navbar1Props) => {
   const currentPath = usePathname();
+  const [isAuth, setAuth] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      // todo: verify token;
+      // const res = await fetch("/api/verify-token", {
+      //   method: "GET",
+      //   headers: {"Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}`},
+      // })
+      // setAuth(res.ok);
+
+      // temp; remove once middleware is working
+      if (localStorage.getItem("token")) {
+        setAuth(true);
+      }
+    })();
+  }, []);
 
   return (
     <section className={`py-4 ${shouldNavVis(currentPath) ? '' : 'hidden'}`}>
@@ -118,12 +141,24 @@ const Navbar1 = ({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
-              <a href={auth.login.url}>{auth.login.title}</a>
-            </Button>
-            <Button asChild size="sm">
-              <a href={auth.signup.url}>{auth.signup.title}</a>
-            </Button>
+            {
+              isAuth ?
+                  <>
+                    <Button variant="outline" size="sm">
+                      <LogOutIcon />
+                      Log Out
+                    </Button>
+                  </>
+                  :
+                  <>
+                    <Button asChild variant="outline" size="sm">
+                      <a href={auth.login.url}>{auth.login.title}</a>
+                    </Button>
+                    <Button asChild size="sm">
+                      <a href={auth.signup.url}>{auth.signup.title}</a>
+                    </Button>
+                  </>
+            }
           </div>
         </nav>
 
@@ -166,12 +201,19 @@ const Navbar1 = ({
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
-                      <a href={auth.login.url}>{auth.login.title}</a>
-                    </Button>
-                    <Button asChild>
-                      <a href={auth.signup.url}>{auth.signup.title}</a>
-                    </Button>
+                    {
+                      isAuth ?
+                          <div>test</div>
+                          :
+                          <>
+                            <Button asChild variant="outline">
+                              <a href={auth.login.url}>{auth.login.title}</a>
+                            </Button>
+                            <Button asChild>
+                              <a href={auth.signup.url}>{auth.signup.title}</a>
+                            </Button>
+                          </>
+                    }
                   </div>
                 </div>
               </SheetContent>
