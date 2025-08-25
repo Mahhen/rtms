@@ -45,15 +45,16 @@ const TrainLookupFormSchema = z.object({
 });
 
 const PNRLookupFormSchema = z.object({
-    pnr: z.string({error: "Please enter a valid pnr"}),
+    pnr: z.string().min(1, {error: "Please enter a valid number."}),
 });
 
 export const HeroInput = () => {
-    const [pnr, setPnr] = useState("");
-
     const pnrform = useForm<z.infer<typeof PNRLookupFormSchema>>({
-        resolver: zodResolver(PNRLookupFormSchema)
-    })
+        resolver: zodResolver(PNRLookupFormSchema),
+        defaultValues: {
+            pnr: ""
+        }
+    });
 
     const form = useForm<z.infer<typeof TrainLookupFormSchema>>({
         resolver: zodResolver(TrainLookupFormSchema)
