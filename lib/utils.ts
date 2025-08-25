@@ -7,6 +7,6 @@ export function cn(...inputs: ClassValue[]) {
 
 // check whether navigation bar should be made visible or not
 export function shouldNavVis(currentPath: string): boolean {
-  let restricted = ["/login", "/register"];
+  const restricted = ["/login", "/register"];
   return !restricted.includes(currentPath);
 }

@@ -18,5 +18,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/book/:path*", "/api/admin/:path*"],
+  matcher: ["/api/book/:path*", "/api/admin/:path*", "/api/verify-token/:path*"],
 };
