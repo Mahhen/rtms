@@ -2,8 +2,6 @@
 
 import {LogOutIcon, Menu} from "lucide-react";
 
-
-
 import {
   Accordion,
   AccordionContent,
@@ -29,6 +27,7 @@ import {
 import { shouldNavVis } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
 
 interface MenuItem {
   title: string;
@@ -94,6 +93,8 @@ const Navbar1 = ({
   },
 }: Navbar1Props) => {
   const currentPath = usePathname();
+  const router = useRouter();
+
   const [isAuth, setAuth] = useState(false);
 
   useEffect(() => {
@@ -112,8 +113,14 @@ const Navbar1 = ({
     })();
   }, []);
 
+  const logoutFn = async () => {
+    localStorage.removeItem("token");
+    router.push('/');
+    setAuth(false);
+  }
+
   return (
-    <section className={`py-4 ${shouldNavVis(currentPath) ? '' : 'hidden'}`}>
+    <section className={`p-2 ${shouldNavVis(currentPath) ? '' : 'hidden'}`}>
       <div className="container">
         {/* Desktop Menu */}
         <nav className="hidden justify-between lg:flex">
@@ -144,7 +151,7 @@ const Navbar1 = ({
             {
               isAuth ?
                   <>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={logoutFn}>
                       <LogOutIcon />
                       Log Out
                     </Button>
