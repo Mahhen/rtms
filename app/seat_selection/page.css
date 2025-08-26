@@ -1,0 +1,154 @@
+.page {
+  text-align: center;
+  color: white;
+  background: black;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.coach {
+  display: flex;
+  background: rgb(50, 49, 49);
+  flex-direction: column;
+  gap: 15px;
+  margin: 0px 268px 0px 143.5px;
+  width: fit-content;
+  border: 2px solid #fff;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.bay {
+  display: flex;
+  /*justify-content: center;   /* horizontally center seats */
+  align-items: center;       /* vertically center seats */
+  width: 450px;
+  padding-bottom: 20px;
+  padding-left: 8%;   /* add some inner spacing */
+}
+.seat-row{
+  margin-left: auto;
+  
+}
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  margin-left: 30px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.seat {
+  border: 1px solid white;
+  padding: 2px 30px 2px 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.seat.selected {
+  background-color: white;
+  color: black;        /* text visible */  /* keep same shape */
+}
+
+.button_thing {
+  position: sticky;
+  width: 500px;
+  bottom: 0;
+  border-radius: 12px;
+  background: rgb(22, 22, 22);
+  color: white;
+  /* border: 2px solid white; */
+  padding: 4px 0px 15px 0px;
+  margin-left: 33%;
+  margin-top: 10px;
+}
+
+.bay-divider {
+  border: 0.5px solid gray;
+  margin-top: 10px;
+  width: 375px;
+}
+
+.line {
+    width: 375px;
+    border: 1px solid gray;
+    margin-bottom: 1px;
+    margin-top: 1px;
+}
+
+.washroom {
+    border: 2px solid #fff;
+    background: rgb(50, 50, 50);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.confirm-button{
+    background-color: white;
+    color: black;
+    border-radius: 20px;
+    padding: 0.5px;
+    width: 300px;
+}
+
+.layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-left: 92px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgb(30, 30, 30);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #888;
+  min-width: 180px;
+  margin-left: 0px;
+}
+
+.controls label {
+  color: white;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.controls select {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background: #222;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.controls select:disabled {
+  background: #555;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.selected_seats {
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  right: 0;
+  top: 0;
+}
