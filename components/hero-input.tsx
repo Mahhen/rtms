@@ -45,15 +45,16 @@ const TrainLookupFormSchema = z.object({
 });
 
 const PNRLookupFormSchema = z.object({
-    pnr: z.string({error: "Please enter a valid pnr"}),
+    pnr: z.string().min(1, {error: "Please enter a valid number."}),
 });
 
 export const HeroInput = () => {
-    const [pnr, setPnr] = useState("");
-
     const pnrform = useForm<z.infer<typeof PNRLookupFormSchema>>({
-        resolver: zodResolver(PNRLookupFormSchema)
-    })
+        resolver: zodResolver(PNRLookupFormSchema),
+        defaultValues: {
+            pnr: ""
+        }
+    });
 
     const form = useForm<z.infer<typeof TrainLookupFormSchema>>({
         resolver: zodResolver(TrainLookupFormSchema)
@@ -100,7 +101,7 @@ export const HeroInput = () => {
 
     return (
         <div className="bg-white/20 backdrop-blur-md border border-white/30 shadow-lg
-          rounded-2xl p-6 w-full max-w-3xl mt-6">
+          rounded-2xl p-6 w-full max-w-3xl mt-6 dark">
 
             <Tabs defaultValue="book">
                 <TabsList className="bg-white/10">
