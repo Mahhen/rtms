@@ -1,42 +1,73 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
+
+const stopSchema = new mongoose.Schema({
+  seq: {
+    type: Number,
+    required: true
+  },
+  station_code: {
+    type: String,
+    required: true
+  },
+  station_name: {
+    type: String,
+    required: true
+  },
+  arrival_time: {
+    type: String,
+    required: true
+  },
+  departure_time: {
+    type: String,
+    required: true
+  },
+  distance: {
+    type: Number,
+    required: true
+  },
+  day: {
+    type: Number,
+    required: true
+  }
+}, { _id: false }); 
 
 const trainSchema = new mongoose.Schema({
-  trn_id: {
+  train_no: {
     type: String,
     required: true,
     unique: true
   },
-  trn_num: {
+  train_name: {
     type: String,
     required: true
-  },
-  trn_name: {
-    type: String,
-    required: true
-  },
-  trn_desc: {
-    type: String
-  },
-  trn_ticket: {
-    type: Number,
-    required: true,
-    min: 0
   },
   source: {
-    type: String,
-    required: true
+    code: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    }
   },
   destination: {
-    type: String,
-    required: true
+    code: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    }
   },
-  halts: {
-    type: [Number],
-    required : true
+  stops: {
+    type: [stopSchema],
+    required: true
   }
-})
+});
 
 // Create model
-const Train = mongoose.model("Train", trainSchema)
+const Train = mongoose.model("Train", trainSchema);
 
-module.exports = Train
+export default Train;

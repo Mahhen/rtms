@@ -99,17 +99,14 @@ const Navbar1 = ({
 
   useEffect(() => {
     (async () => {
-      // todo: verify token;
-      // const res = await fetch("/api/verify-token", {
-      //   method: "GET",
-      //   headers: {"Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}`},
-      // })
-      // setAuth(res.ok);
-
-      // temp; remove once middleware is working
-      if (localStorage.getItem("token")) {
-        setAuth(true);
-      }
+      
+      const res = await fetch("/api/verify-token", {
+        method: "GET",
+        headers: {"Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}`},
+      })
+      setAuth(res.ok);
+    
+     
     })();
   }, []);
 
