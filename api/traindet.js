@@ -22,9 +22,11 @@ async function fetchTrains() {
           destination: fields[4],
           destination_code: fields[5],
           departs: fields[6],
-          arrives: fields[7],
-          type: fields[8]
-          // Add more fields if required
+          depart_code: fields[7],
+          arrives_at: fields[8],
+          arrive_code: fields[9],
+          distance_km: fields[39],
+          
         };
         trains.push(train);
       }
