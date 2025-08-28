@@ -4,103 +4,107 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import {fetchTrains, TrainScheduleData} from "@/api/traindet";
+import IRLogo from "@/components/ir-logo";
 
 export default function TrainSearchResults() {
     const [loading, setLoading] = useState(true);
-    const [trains, setTrains] = useState<any[]>([]);
+    const [isError, setError] = useState(false);
+    const [trains, setTrains] = useState<TrainScheduleData[]>([]);
 
-    // mock API call
     useEffect(() => {
-        setTimeout(() => {
-            setTrains([
-                {
-                    id: 1,
-                    name: "IR 95",
-                    direction: "Genève-Aéroport",
-                    departure: "22:27",
-                    arrival: "23:40",
-                    duration: "1 h 13 min",
-                    price2: "CHF 16.00",
-                    price1: "CHF 18.20",
-                    platform: "1",
-                },
-                {
-                    id: 2,
-                    name: "EC",
-                    direction: "Genève",
-                    departure: "22:53",
-                    arrival: "00:05",
-                    duration: "1 h 12 min",
-                    price2: "CHF 16.00",
-                    price1: "CHF 18.20",
-                    platform: "1",
-                },
-                {
-                    id: 3,
-                    name: "IR 95",
-                    direction: "Genève",
-                    departure: "23:31",
-                    arrival: "00:38",
-                    duration: "1 h 7 min",
-                    price2: "CHF 16.00",
-                    price1: "CHF 18.20",
-                    platform: "1",
-                }
-            ]);
+        (async () =>{
+            const trainData = await fetchTrains("NLR", "KTYM");
+            if (trainData) setTrains(trainData);
+            else setError(true);
             setLoading(false);
-        }, 1200);
+        })()
     }, []);
 
-    return (
-        <div className="p-6 max-w-5xl mx-auto space-y-4">
-            <div className="flex items-center justify-between border rounded-xl p-4 bg-card">
-                <div>
-                    <p className="text-sm text-muted-foreground">From</p>
-                    <p className="text-lg font-semibold">Montreux</p>
-                </div>
-                <div>
-                    <p className="text-sm text-muted-foreground">To</p>
-                    <p className="text-lg font-semibold">Genève</p>
-                </div>
-                <div>
-                    <p className="text-sm text-muted-foreground">Date</p>
-                    <p className="text-lg font-semibold">Su, 24.08.2025</p>
-                </div>
-                <div>
-                    <Button variant="outline">Settings</Button>
-                </div>
-            </div>
+    const prettifiedDuration = (duration: string): string => {
+        const data =  duration.split(".");
+        const hr = Number(data[0]);
+        const min = Number(data[1]);
+        return `${hr} h ${min} min`
+    }
 
-            {loading ? (
-                <div className="flex justify-center items-center py-20">
-                    <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+    return (
+        <div className="bg-[#f6f6f6]">
+            <div className="p-6 w-[500px] space-y-1 pb-10">
+                <div className="flex items-center justify-between border rounded-xl p-4 bg-card">
+                    <div>
+                        <p className="text-sm text-muted-foreground">From</p>
+                        <p className="text-lg font-semibold">NLR///Nellore</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">To</p>
+                        <p className="text-lg font-semibold">KTYM///Kottayam</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Date</p>
+                        <p className="text-lg font-semibold">BITCH</p>
+                    </div>
+                    <div>
+                        <Button variant="outline">Settings</Button>
+                    </div>
                 </div>
-            ) : (
-                <div className="grid gap-4">
-                    {trains.map((train) => (
-                        <Card key={train.id} className="rounded-2xl border shadow-sm">
-                            <CardContent className="p-4 grid grid-cols-6 items-center">
-                                <div className="col-span-2">
-                                    <p className="font-bold text-lg">{train.departure} → {train.arrival}</p>
-                                    <p className="text-sm text-muted-foreground">{train.duration}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="font-medium">{train.name} {train.direction}</p>
-                                    <p className="text-sm text-muted-foreground">Platform {train.platform}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm">2nd class</p>
-                                    <p className="font-semibold">{train.price2}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm">1st class</p>
-                                    <p className="font-semibold">{train.price1}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            )}
+
+                {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+                    </div>
+                ) : (
+                    <div className="grid gap-1">
+                        {trains.map((train) => (
+                            <Card key={train.trainNumber} className="rounded-[5px] border shadow-sm hover:shadow-xl border-solid p-0">
+                                <CardContent className="p-3 flex flex-col items-start min-w-[60px]">
+                                    <div className="flex flex-row place-items-center">
+                                        <div>
+                                            <IRLogo />
+                                        </div>
+                                        <div className="ml-4">
+                                            <div className="border-[1px] border-red-500 border-solid rounded-xs ml-[-10] text-sm font-semibold text-red-500">
+                                                <div className="mx-1">
+                                                    {train.trainNumber}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs ml-2 place-self-center">
+                                            {train.trainName}
+                                        </div>
+                                    </div>
+                                    <div className="mt-2 flex flex-row place-items-center w-full">
+                                        <div className="text-sm font-semibold">
+                                            {train.departureTime}
+                                        </div>
+                                        <div className="col-span-4 w-full mx-5">
+                                            <div className="flex items-center">
+                                                <div className="h-2 w-2 rounded-full bg-black" />
+                                                <div className="w-full h-[1px] bg-black relative"/>
+                                                <div className="h-2 w-2 rounded-full bg-black" />
+                                            </div>
+                                        </div>
+                                        <div className="ml-auto text-sm font-semibold">
+                                            {train.arrivalTime}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-row mt-2 place-items-center w-full">
+                                        <div className="text-sm">
+                                            Pl. 2
+                                        </div>
+                                        <div className="grow">
+
+                                        </div>
+                                        <div className="text-sm">
+                                            {prettifiedDuration(train.travelDuration)}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
