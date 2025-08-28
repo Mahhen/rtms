@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -18,14 +18,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-type SeatType = "LB" | "UB" | "SL" | "SU"
+type SeatType = "LB" | "MB" | "UB" | "SL" | "SU"
 
 type Seat = {
   id: string
   type: SeatType
   selected: boolean
+  sold?: boolean
 }
 
+// ---------------- SEAT GENERATORS ----------------
+
+// 2AC (Default)
 function createBay(bayNumber: number): Seat[] {
   return [
     { id: `LB${bayNumber}A`, type: "LB", selected: false },
@@ -34,6 +38,32 @@ function createBay(bayNumber: number): Seat[] {
     { id: `UB${bayNumber}B`, type: "UB", selected: false },
     { id: `SL${bayNumber}`, type: "SL", selected: false },
     { id: `SU${bayNumber}`, type: "SU", selected: false },
+  ]
+}
+
+// 3AC & Sleeper
+function createBay3AC(bayNumber: number): Seat[] {
+  return [
+    { id: `LB${bayNumber}A`, type: "LB", selected: false },
+    { id: `MB${bayNumber}A`, type: "MB", selected: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false },
+
+    { id: `SL${bayNumber}`, type: "SL", selected: false },
+    { id: `SU${bayNumber}`, type: "SU", selected: false },
+
+    { id: `LB${bayNumber}B`, type: "LB", selected: false },
+    { id: `MB${bayNumber}B`, type: "MB", selected: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false },
+  ]
+}
+
+// 1AC
+function createBay1AC(bayNumber: number): Seat[] {
+  return [
+    { id: `LB${bayNumber}A`, type: "LB", selected: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false },
   ]
 }
 
@@ -49,15 +79,27 @@ const coachOptions: Record<string, string[]> = {
 const tierOptions = ["1AC", "2AC", "3AC", "Sleeper"]
 
 export default function TrainSeats() {
-  const [seats, setSeats] = useState<Seat[]>(() =>
-    Array.from({ length: BAY_COUNT }, (_, i) => createBay(i + 1)).flat()
-  )
-
+  const [seats, setSeats] = useState<Seat[]>([])
   const [selectedTier, setSelectedTier] = useState<string>("")
   const [selectedCoach, setSelectedCoach] = useState<string>("")
 
   const [tierOpen, setTierOpen] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
+
+  // whenever tier & coach are chosen, generate seat layout
+  useEffect(() => {
+    if (selectedTier && selectedCoach) {
+      if (selectedTier === "3AC" || selectedTier === "Sleeper") {
+        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay3AC(i + 1)).flat())
+      } else if (selectedTier === "1AC") {
+        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay1AC(i + 1)).flat())
+      } else {
+        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay(i + 1)).flat())
+      }
+    } else {
+      setSeats([])
+    }
+  }, [selectedTier, selectedCoach])
 
   const toggleSeat = (id: string) => {
     setSeats(prev =>
@@ -70,15 +112,18 @@ export default function TrainSeats() {
     if (!seat) return null
     return (
       <div
-        onClick={() => toggleSeat(id)}
+        onClick={() => !seat.sold && toggleSeat(id)} // disable click if sold
         role="button"
         aria-pressed={seat.selected}
         title={id}
         className={cn(
-          "w-12 h-12 flex items-center justify-center rounded-md border text-sm font-medium cursor-pointer transition",
-          seat.selected
+          "flex items-center justify-center rounded-md border text-sm font-medium cursor-pointer transition",
+          "w-[48px] h-[48px] m-[4px]",
+          seat.sold
+            ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-70"
+            : seat.selected
             ? "bg-blue-600 text-white border-blue-600"
-            : "bg-gray-100 hover:bg-gray-200 border-gray-300"
+            : "bg-white text-gray-600 border-blue-600 hover:bg-blue-50"
         )}
       >
         {label}
@@ -86,14 +131,118 @@ export default function TrainSeats() {
     )
   }
 
+  // ---------------- Layout Components ----------------
+
+  const DefaultLayout = () => (
+    <div className="border rounded-[150px] p-15 bg-white shadow-sm w-130 ml-28.5">
+      <div className="ml-40">Washrooms</div>
+      <hr className="border-gray-200 mt-3 mb-3" />
+      {Array.from({ length: BAY_COUNT }, (_, i) => {
+        const n = i + 1
+        return (
+          <div key={n} className="mb-4">
+            <div className="flex flex-row gap-50 pl-4">
+              <div className="flex flex-col">
+                <div className="flex">
+                  {renderSeat(`LB${n}A`, "LB")}
+                  {renderSeat(`UB${n}A`, "UB")}
+                </div>
+                <div className="flex">
+                  {renderSeat(`LB${n}B`, "LB")}
+                  {renderSeat(`UB${n}B`, "UB")}
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex">{renderSeat(`SL${n}`, "SL")}</div>
+                <div className="flex">{renderSeat(`SU${n}`, "SU")}</div>
+              </div>
+            </div>
+            <hr className="border-gray-200 mt-3" />
+          </div>
+        )
+      })}
+      <div className="ml-40 mt-6">Washrooms</div>
+    </div>
+  )
+
+  const ThreeACLayout = () => (
+    <div className="border rounded-[150px] bg-white shadow-sm w-130 ml-28.5 pl-16 pt-15 pb-15 pr-10">
+      <div className="ml-40">Washrooms</div>
+      <hr className="border-gray-200 mt-3 mb-3" />
+      {Array.from({ length: BAY_COUNT }, (_, i) => {
+        const n = i + 1
+        return (
+          <div key={n} className="mb-6">
+            <div className="flex justify-centre">
+              {/* Main Section: LB | MB | UB */}
+              <div className="flex flex-col gap-2">
+                <div className="flex">
+                  {renderSeat(`LB${n}A`, "LB")}
+                  {renderSeat(`MB${n}A`, "MB")}
+                  {renderSeat(`UB${n}A`, "UB")}
+                </div>
+                <div className="flex">
+                  {renderSeat(`LB${n}B`, "LB")}
+                  {renderSeat(`MB${n}B`, "MB")}
+                  {renderSeat(`UB${n}B`, "UB")}
+                </div>
+              </div>
+
+              {/* Side Section: SL | SU */}
+              <div className="flex flex-col ml-40">
+                <div className="flex">{renderSeat(`SL${n}`, "SL")}</div>
+                <div className="flex">{renderSeat(`SU${n}`, "SU")}</div>
+              </div>
+            </div>
+
+            <hr className="w-[400px] mt-4 border-gray pr-[80px]" />
+          </div>
+        )
+      })}
+      <div className="ml-40 mt-6">Washrooms</div>
+    </div>
+  )
+
+  const OneACLayout = () => (
+    <div className="border rounded-[150px] p-10 bg-white shadow-sm w-130 ml-28.5 ">
+      <div className="ml-45">Washrooms</div>
+      <hr className="border-gray-200 mt-3 mb-3 w-100 ml-5" />
+      {Array.from({ length: BAY_COUNT }, (_, i) => {
+        const n = i + 1
+        return (
+          <div key={n} className="mb-6">
+            <div className="flex flex-col gap-2 pl-40">
+              <div className="flex mr-4">
+                {renderSeat(`LB${n}A`, "LB")}
+                {renderSeat(`UB${n}A`, "UB")}
+              </div>
+              <div className="flex">
+                {renderSeat(`LB${n}B`, "LB")}
+                {renderSeat(`UB${n}B`, "UB")}
+              </div>
+            </div>
+            <hr className="border-gray-200 mt-4" />
+          </div>
+        )
+      })}
+      <div className="ml-40 mt-6">Washrooms</div>
+    </div>
+  )
+
+  // Reuse ThreeACLayout for Sleeper
+  const SleeperLayout = ThreeACLayout
+
+  // ---------------- MAIN RETURN ----------------
+
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-center">Select Your Seats</h1>
+      <h1 className="text-2xl font-bold text-center ml-3">Select Your Seats</h1>
 
       <div className="flex gap-8">
         {/* LEFT SIDE - Combobox Controls */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ml-25">
           {/* Tier Combobox */}
+          <b>Select Tier :</b>
           <Popover open={tierOpen} onOpenChange={setTierOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -118,7 +267,7 @@ export default function TrainSeats() {
                         value={tier}
                         onSelect={val => {
                           setSelectedTier(val)
-                          setSelectedCoach("") // reset coach
+                          setSelectedCoach("")
                           setTierOpen(false)
                         }}
                       >
@@ -138,6 +287,7 @@ export default function TrainSeats() {
           </Popover>
 
           {/* Coach Combobox */}
+          <b>Select Coach :</b>
           <Popover open={coachOpen} onOpenChange={setCoachOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -185,52 +335,64 @@ export default function TrainSeats() {
           </Popover>
         </div>
 
-        {/* RIGHT SIDE - Seat Layout */}
-        
-          <div className="flex-1 border rounded-lg p-4 bg-white shadow-sm mr-auto w-304">
-            <div className="text-center font-semibold text-gray-700 mb-2">
-              Washrooms
-            </div>
-            <hr className="border-gray-300 mb-4" />
+        {/* RIGHT SIDE - Seat Layout + Arrow + Legend */}
+        {selectedTier && selectedCoach && (
+          <div className="flex items-start gap-12 ml-8.5">
+            {/* Seat Layout */}
+            <>
+              {selectedTier === "1AC" && <OneACLayout />}
+              {selectedTier === "2AC" && <DefaultLayout />}
+              {selectedTier === "3AC" && <ThreeACLayout />}
+              {selectedTier === "Sleeper" && <SleeperLayout />}
+            </>
 
-            {Array.from({ length: BAY_COUNT }, (_, i) => {
-              const n = i + 1
-              return (
-                <div key={n} className="mb-4">
-                  <div className="flex justify-between">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        {renderSeat(`LB${n}A`, "LB")}
-                        {renderSeat(`UB${n}A`, "UB")}
-                      </div>
-                      <div className="flex gap-2">
-                        {renderSeat(`LB${n}B`, "LB")}
-                        {renderSeat(`UB${n}B`, "UB")}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        {renderSeat(`SL${n}`, "SL")}
-                        {renderSeat(`SU${n}`, "SU")}
-                      </div>
-                    </div>
-                  </div>
-                  <hr className="border-gray-200 mt-3" />
-                </div>
-              )
-            })}
-
-            <div className="text-center font-semibold text-gray-700 mt-2">
-              Washrooms
+            {/* Travel Direction Arrow */}
+            <div className="flex flex-col items-center mt-40 sticky top-20">
+              <span className="text-gray-600 font-semibold mb-2">
+                Direction of Travel
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-20 w-10 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 19V5m0 0l-7 7m7-7l7 7"
+                />
+              </svg>
             </div>
-            
-            {/* Bottom Confirm Section */}
-        
-          <div className="mt-6 flex flex-col items-center gap-3 sticky bottom-0 border-solid border-3 bg-white w-[inherit] ml-[inherit] p-6 rounded-xl">
-            <h3 className="text-lg font-semibold">Selected Seats:</h3>
-            <p className="text-gray-700">
+
+            {/* Legend Section */}
+            <div className="flex flex-col gap-3 p-4 border rounded-lg shadow-sm bg-white mt-37 ml-5 sticky top-20">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-blue-600 border"></div>
+                <span className="text-gray-700 text-sm">Selected Seat</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-red-500 border"></div>
+                <span className="text-gray-700 text-sm">Sold Seat</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-white border border-blue-600"></div>
+                <span className="text-gray-700 text-sm">Available Seat</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Confirm Section */}
+      {seats.length > 0 && (
+        <div className="mt-6 flex flex-col items-center gap-3 sticky bottom-0 border bg-white w-full p-6 rounded-xl">
+          <h3 className="text-lg font-semibold">Selected Seats:</h3>
+          <p className="text-gray-700">
             {seats.filter(s => s.selected).map(s => s.id).join(", ") || "None"}
-            </p>
+          </p>
           <Button
             className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() =>
@@ -238,19 +400,16 @@ export default function TrainSeats() {
                 `Tier: ${selectedTier || "None"}\nCoach: ${
                   selectedCoach || "None"
                 }\nSeats: ${
-                  seats.filter(s => s.selected).map(s => s.id).join(", ") || "None"
+                  seats.filter(s => s.selected).map(s => s.id).join(", ") ||
+                  "None"
                 }`
               )
             }
           >
             Confirm Seats
           </Button>
-        
-      </div>
         </div>
-      </div>
-
-      
+      )}
     </div>
   )
 }
