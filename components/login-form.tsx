@@ -38,7 +38,7 @@ export function LoginForm({
         localStorage.setItem("token", data.token);
 
         alert("Login successful 🎉");
-        window.location.href = "/dashboard"; 
+        window.location.href = "/booking"; 
       } else {
         alert(data.message || "Login failed ❌");
       }
