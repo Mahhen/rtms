@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export async function fetchTrains() {
+async function fetchTrains() {
   try {
     const url = "https://erail.in/rail/getTrains.aspx?Station_From=NLR&Station_To=KTYM&DataSource=0&Language=0&Cache=true";
     const response = await axios.get(url);
@@ -26,6 +26,7 @@ export async function fetchTrains() {
           arrives_at: fields[8],
           arrive_code: fields[9],
           distance_km: fields[39],
+          
           
         };
         trains.push(train);

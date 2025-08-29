@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectToDB from "@/lib/dbConnect";
 import User from "@/models/users";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { jwtVerify, SignJWT } from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,19 +27,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
     }
 
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        email: user.user_email,
-        role: user.login.role.role_name,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
-    );
+    const token = await new SignJWT({
+      userId: user._id,
+      email: user.user_email,
+      role: user.login.role.role_name,
+    })
+      .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+      .setExpirationTime("30m")
+      .sign(new TextEncoder().encode(process.env.JWT_SECRET!));
 
     return NextResponse.json({ message: "Login successful", token }, { status: 200 });
   } catch (err) {
-    console.error("Login error:", err);
+    
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
