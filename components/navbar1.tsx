@@ -72,7 +72,7 @@ const Navbar1 = ({
     { title: "Home", url: "#" },
     {
       title: "Search Trains",
-      url: "/",
+      url: "/search",
       
     },
     {
@@ -120,7 +120,7 @@ const Navbar1 = ({
     <section className={`p-2 ${shouldNavVis(currentPath) ? '' : 'hidden'}`}>
       <div className="container">
         {/* Desktop Menu */}
-        <nav className="hidden justify-between lg:flex">
+        <nav className="hidden justify-between items-center lg:flex">
           <div>
             {/* logo */}
             <a href={logo.url} className="flex items-center gap-2">
