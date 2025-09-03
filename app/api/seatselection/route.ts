@@ -6,9 +6,9 @@ import Seats from "@/models/seats"
 async function connectDB() {
   if (mongoose.connection.readyState >= 1) return
 
-  const uri = process.env.MONGO_URI
+  const uri = process.env.MONGOURI
   if (!uri) {
-    throw new Error("MONGO_URI is not defined in environment variables")
+    throw new Error("MONGOURI is not defined in environment variables")
   }
 
   await mongoose.connect(uri, {

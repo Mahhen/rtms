@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useSearchParams } from "next/navigation"
 
 type SeatType = "LB" | "MB" | "UB" | "SL" | "SU"
 
@@ -86,6 +87,11 @@ export default function TrainSeats() {
 
   const [tierOpen, setTierOpen] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
+
+  const params = useSearchParams();
+  const trainNumber = Number(params.get("trainNumber") ?? "0");
+  const journeyDate = new Date(params.get("journeyDate") ?? "")
+
 
   // whenever tier & coach are chosen, generate seat layout
               useEffect(() => {
@@ -467,8 +473,8 @@ export default function TrainSeats() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  train_id: "12345",          // replace dynamically
-                  journey_date: "2025-09-03", // replace dynamically
+                  train_no: trainNumber,          // replace dynamically
+                  journey_date: journeyDate.toLocaleDateString(), // replace dynamically
                   class_name: selectedTier,
                   seat_type: "General",
                   seats: bookedSeats,
