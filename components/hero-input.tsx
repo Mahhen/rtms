@@ -114,7 +114,7 @@ export const HeroInput = ({simplifiedSearchMode = false, initialValues}: HeroInp
         const params = new URLSearchParams({
             from: data.from,
             to: data.to,
-            date: data.date.toISOString().split("T")[0],
+            date: data.date.toLocaleDateString().split("T")[0],
             __boardingDisplay: data.__boardingDisplay,
             __destinationDisplay: data.__destinationDisplay,
         }).toString();
