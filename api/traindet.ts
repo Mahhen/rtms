@@ -1,4 +1,5 @@
 import axios from "axios";
+import { stat } from "fs";
 import {number, string} from "zod";
 
 export interface TrainScheduleData {
@@ -16,6 +17,14 @@ export interface TrainScheduleData {
   arrivalTime: string;
   departureTime: string;
   travelDuration: string;
+  runningstatus: string;
+}
+
+const refineTrainRunningStatus = (status: string) => {
+  const statusArr = status.split("");
+  const sunStatus = statusArr.pop();
+  statusArr.unshift(sunStatus!);
+  return statusArr.join("");
 }
 
 export async function fetchTrains(boardingCode: string, destinationCode: string): Promise<TrainScheduleData[] | null> {
@@ -44,9 +53,10 @@ export async function fetchTrains(boardingCode: string, destinationCode: string)
           arrivesAt: fields[8],
           arrivalCode: fields[9],
           distance: fields[39],
-          arrivalTime: fields[10],
-          departureTime: fields[11],
+          arrivalTime: fields[11],
+          departureTime: fields[10],
           travelDuration: fields[12],
+          runningstatus: refineTrainRunningStatus(fields[13])
         };
         trains.push(train);
       }
