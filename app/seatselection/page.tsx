@@ -411,25 +411,35 @@ export default function TrainSeats() {
           <p className="text-gray-700">
             {seats.filter(s => s.selected).map(s => s.id).join(", ") || "None"}
           </p>
-          <Button
-        className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-          onClick={() => {
-            const bookedSeats = seats.filter(s => s.selected)
-            fetch("/api/booking", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ bookedSeats }),
-            })
-              .then(res => res.json())
-              .then(data => {
-                setSeats(data.seats) // update seat statuses
-                alert("Booking confirmed ✅")
-              })
-          }}
+                    <Button
+            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => {
+              const bookedSeats = seats.filter(s => s.selected).map(s => s.id)
 
+              fetch("/api/seatselection", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ seats: bookedSeats }),
+              })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.soldSeats) {
+                    // Update seat states: mark sold ones
+                    setSeats(prev =>
+                      prev.map(s =>
+                        data.soldSeats.includes(s.id)
+                          ? { ...s, sold: true, selected: false }
+                          : s
+                      )
+                    )
+                  }
+                  alert("Booking confirmed ✅")
+                })
+            }}
           >
             Confirm Seats
           </Button>
+
 
         </div>
       )}
