@@ -1,28 +1,97 @@
 import { NextResponse } from "next/server"
+import mongoose from "mongoose"
+import Seats from "@/models/seats"
 
-// In-memory storage (resets when server restarts)
-let soldSeats: string[] = ["LB1A", "UB2A"]
+// 🔹 Ensure MongoDB connection
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return
 
-// GET - fetch sold seats
-export async function GET() {
-  return NextResponse.json({ soldSeats })
+  const uri = process.env.MONGO_URI
+  if (!uri) {
+    throw new Error("MONGO_URI is not defined in environment variables")
+  }
+
+  await mongoose.connect(uri, {
+    dbName: "rtms",
+  })
 }
 
-// POST - mark seats as sold
+// ============ GET ============
+// Fetch all seat documents
+export async function GET() {
+  try {
+    await connectDB()
+    const seats = await Seats.find({})
+    return NextResponse.json({ success: true, data: seats })
+  } catch (err) {
+    console.error("GET error:", err)
+    return NextResponse.json({ success: false, error: "Failed to fetch seats" }, { status: 500 })
+  }
+}
+
+// ============ POST ============
+// Book seats into DB using Seats schema
 export async function POST(req: Request) {
   try {
+    await connectDB()
     const body = await req.json()
-    const { seats } = body
+    const {
+      train_no,       // ✅ changed from train_id
+      journey_date,
+      class_name,
+      seat_type,
+      seats, // array of { seat_number, source, destination }
+    } = body
 
-    if (!Array.isArray(seats)) {
-      return NextResponse.json({ error: "Seats must be an array" }, { status: 400 })
+    if (!train_no || !journey_date || !class_name || !seat_type || !Array.isArray(seats)) {
+      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
     }
 
-    // Add new sold seats (avoid duplicates)
-    soldSeats = [...new Set([...soldSeats, ...seats])]
+    // ✅ Ensure correct types
+    const journeyDate = new Date(journey_date)
 
-    return NextResponse.json({ message: "Seats marked as sold", soldSeats })
+    // Find or create seat document
+    let seatDoc = await Seats.findOne({ train_no, journey_date: journeyDate })
+    if (!seatDoc) {
+      seatDoc = new Seats({ train_no, journey_date: journeyDate, classes: [] })
+    }
+
+    // Find the class entry
+    let cls = seatDoc.classes.find(
+      (c) => c.class_name === class_name && c.seat_type === seat_type
+    )
+    if (!cls) {
+      cls = { class_name, seat_type, total: 0, booked: 0, bookedSeats: [] }
+      seatDoc.classes.push(cls)
+    }
+
+    // ✅ Prevent duplicate booking
+    const alreadyBooked = cls.bookedSeats.map((s: any) => s.seat_number)
+    const newSeats = seats.filter((s: any) => !alreadyBooked.includes(s.seat_number))
+
+    if (newSeats.length === 0) {
+      return NextResponse.json({ success: false, error: "Selected seats already booked" }, { status: 400 })
+    }
+
+    // Add new booked seats
+    for (const s of newSeats) {
+      cls.bookedSeats.push({
+        seat_number: s.seat_number,
+        source: s.source,
+        destination: s.destination,
+      })
+    }
+    cls.booked += newSeats.length
+
+    await seatDoc.save()
+
+    return NextResponse.json({
+      success: true,
+      message: "Seats booked successfully",
+      data: seatDoc,
+    })
   } catch (error) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+    console.error("POST error:", error)
+    return NextResponse.json({ success: false, error: "Failed to book seats" }, { status: 500 })
   }
 }

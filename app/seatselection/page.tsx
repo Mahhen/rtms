@@ -32,40 +32,41 @@ type Seat = {
 // 2AC (Default)
 function createBay(bayNumber: number): Seat[] {
   return [
-    { id: `LB${bayNumber}A`, type: "LB", selected: false },
-    { id: `UB${bayNumber}A`, type: "UB", selected: false },
-    { id: `LB${bayNumber}B`, type: "LB", selected: false },
-    { id: `UB${bayNumber}B`, type: "UB", selected: false },
-    { id: `SL${bayNumber}`, type: "SL", selected: false },
-    { id: `SU${bayNumber}`, type: "SU", selected: false },
+    { id: `LB${bayNumber}A`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false, sold: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false, sold: false },
+    { id: `SL${bayNumber}`, type: "SL", selected: false, sold: false },
+    { id: `SU${bayNumber}`, type: "SU", selected: false, sold: false },
   ]
 }
 
 // 3AC & Sleeper
 function createBay3AC(bayNumber: number): Seat[] {
   return [
-    { id: `LB${bayNumber}A`, type: "LB", selected: false },
-    { id: `MB${bayNumber}A`, type: "MB", selected: false },
-    { id: `UB${bayNumber}A`, type: "UB", selected: false },
+    { id: `LB${bayNumber}A`, type: "LB", selected: false, sold: false },
+    { id: `MB${bayNumber}A`, type: "MB", selected: false, sold: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false, sold: false },
 
-    { id: `SL${bayNumber}`, type: "SL", selected: false },
-    { id: `SU${bayNumber}`, type: "SU", selected: false },
+    { id: `SL${bayNumber}`, type: "SL", selected: false, sold: false },
+    { id: `SU${bayNumber}`, type: "SU", selected: false, sold: false },
 
-    { id: `LB${bayNumber}B`, type: "LB", selected: false },
-    { id: `MB${bayNumber}B`, type: "MB", selected: false },
-    { id: `UB${bayNumber}B`, type: "UB", selected: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false, sold: false },
+    { id: `MB${bayNumber}B`, type: "MB", selected: false, sold: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false, sold: false },
   ]
 }
 
 // 1AC
 function createBay1AC(bayNumber: number): Seat[] {
   return [
-    { id: `LB${bayNumber}A`, type: "LB", selected: false },
-    { id: `UB${bayNumber}A`, type: "UB", selected: false },
-    { id: `LB${bayNumber}B`, type: "LB", selected: false },
-    { id: `UB${bayNumber}B`, type: "UB", selected: false },
+    { id: `LB${bayNumber}A`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false, sold: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false, sold: false },
   ]
 }
+
 
 const BAY_COUNT = 8
 
@@ -87,48 +88,85 @@ export default function TrainSeats() {
   const [coachOpen, setCoachOpen] = useState(false)
 
   // whenever tier & coach are chosen, generate seat layout
-  useEffect(() => {
-    if (selectedTier && selectedCoach) {
-      if (selectedTier === "3AC" || selectedTier === "Sleeper") {
-        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay3AC(i + 1)).flat())
-      } else if (selectedTier === "1AC") {
-        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay1AC(i + 1)).flat())
-      } else {
-        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay(i + 1)).flat())
+              useEffect(() => {
+        if (selectedTier && selectedCoach) {
+          let generatedSeats: Seat[] = []
+
+          if (selectedTier === "3AC" || selectedTier === "Sleeper") {
+            generatedSeats = Array.from({ length: BAY_COUNT }, (_, i) => createBay3AC(i + 1)).flat()
+          } else if (selectedTier === "1AC") {
+            generatedSeats = Array.from({ length: BAY_COUNT }, (_, i) => createBay1AC(i + 1)).flat()
+          } else {
+            generatedSeats = Array.from({ length: BAY_COUNT }, (_, i) => createBay(i + 1)).flat()
+          }
+
+          console.log("Generated Seats:", generatedSeats)
+
+          if (generatedSeats.length === 0) {
+            console.error("⚠️ No seats generated for", selectedTier, selectedCoach)
+            return
+          }
+
+          fetch("/api/seatselection")
+            .then(res => res.json())
+            .then(data => {
+              // ✅ Ensure array
+              const docs = Array.isArray(data) ? data : [data]
+
+              const soldSeats = docs.flatMap((doc: any) =>
+                doc.classes?.flatMap((cls: any) =>
+                  cls.bookedSeats.map((s: any) => s.seat_number)
+                ) || []
+              )
+
+              console.log("Sold seats:", soldSeats)
+
+              setSeats(
+                generatedSeats.map(s =>
+                  soldSeats.includes(s.id) ? { ...s, sold: true } : s
+                )
+              )
+            })
+            .catch(err => {
+              console.error("❌ Failed to fetch seats:", err)
+            })
+        } else {
+          setSeats([])
+        }
+      }, [selectedTier, selectedCoach])
+
+
+
+
+
+      const toggleSeat = (id: string) => {
+        setSeats(prev =>
+          prev.map(s => (s.id === id ? { ...s, selected: !s.selected } : s))
+        )
       }
-    } else {
-      setSeats([])
-    }
-  }, [selectedTier, selectedCoach])
 
-  const toggleSeat = (id: string) => {
-    setSeats(prev =>
-      prev.map(s => (s.id === id ? { ...s, selected: !s.selected } : s))
-    )
-  }
-
-  const renderSeat = (id: string, label: SeatType) => {
-    const seat = seats.find(s => s.id === id)
-    if (!seat) return null
-    return (
-      <div
-        onClick={() => !seat.sold && toggleSeat(id)} // disable click if sold
-        role="button"
-        aria-pressed={seat.selected}
-        title={id}
-        className={cn(
-          "flex items-center justify-center rounded-md border text-sm font-medium cursor-pointer transition",
-          "w-[48px] h-[48px] m-[4px]",
-          seat.sold
-            ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-70"
-            : seat.selected
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white text-gray-600 border-blue-600 hover:bg-blue-50"
-        )}
-      >
-        {label}
-      </div>
-    )
+      const renderSeat = (id: string, label: SeatType) => {
+        const seat = seats.find(s => s.id === id)
+        if (!seat) return null
+        return (
+          <div
+            onClick={() => !seat.sold && toggleSeat(id)} // disable click if sold
+            role="button"
+            aria-pressed={seat.selected}
+            title={id}
+            className={cn(
+              "flex items-center justify-center rounded-md border text-sm font-medium cursor-pointer transition",
+              "w-[48px] h-[48px] m-[4px]",
+              seat.sold
+                ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-70"
+                : seat.selected
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-600 border-blue-600 hover:bg-blue-50"
+            )}
+          >
+      {label}
+    </div>
+  )
   }
 
   // ---------------- Layout Components ----------------
@@ -414,31 +452,56 @@ export default function TrainSeats() {
                     <Button
             className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() => {
-              const bookedSeats = seats.filter(s => s.selected).map(s => s.id)
+              const bookedSeats = seats.filter(s => s.selected).map(s => ({
+                seat_number: s.id,
+                source: "SRC",       // replace dynamically
+                destination: "DST",  // replace dynamically
+              }))
+
+              if (bookedSeats.length === 0) {
+                alert("Please select at least one seat")
+                return
+              }
 
               fetch("/api/seatselection", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ seats: bookedSeats }),
+                body: JSON.stringify({
+                  train_id: "12345",          // replace dynamically
+                  journey_date: "2025-09-03", // replace dynamically
+                  class_name: selectedTier,
+                  seat_type: "General",
+                  seats: bookedSeats,
+                }),
               })
                 .then(res => res.json())
                 .then(data => {
-                  if (data.soldSeats) {
-                    // Update seat states: mark sold ones
+                  if (data.success) {
+                    // ✅ get fresh sold seats list
+                    const soldSeats = data.data.classes.flatMap((cls: any) =>
+                      cls.bookedSeats.map((s: any) => s.seat_number)
+                    )
+
+                    // ✅ mark them as sold in UI
                     setSeats(prev =>
                       prev.map(s =>
-                        data.soldSeats.includes(s.id)
+                        soldSeats.includes(s.id)
                           ? { ...s, sold: true, selected: false }
                           : s
                       )
                     )
+
+                    alert("Booking confirmed ✅")
+                  } else {
+                    alert("Booking failed ❌ " + (data.error || "Unknown error"))
                   }
-                  alert("Booking confirmed ✅")
                 })
+                .catch(() => alert("Server error ❌"))
             }}
           >
             Confirm Seats
           </Button>
+
 
 
         </div>
