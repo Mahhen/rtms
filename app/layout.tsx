@@ -37,7 +37,7 @@ export default function RootLayout({
         <Providers>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             disableTransitionOnChange
             >
               {/* ✅ Navbar visible on all pages */}

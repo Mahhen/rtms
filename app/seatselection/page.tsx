@@ -347,7 +347,7 @@ export default function TrainSeats() {
             </>
 
             {/* Travel Direction Arrow */}
-            <div className="flex flex-col items-center mt-40 sticky top-20">
+            <div className="flex flex-col items-center mt-0 sticky top-20">
               <span className="text-gray-600 font-semibold mb-2">
                 Direction of Travel
               </span>
@@ -368,7 +368,7 @@ export default function TrainSeats() {
             </div>
 
             {/* Legend Section */}
-            <div className="flex flex-col gap-3 p-4 border rounded-lg shadow-sm bg-white mt-37 ml-5 sticky top-20">
+            <div className="flex flex-col gap-3 p-4 border rounded-lg shadow-sm bg-white mt-0 ml-5 sticky top-20">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-blue-600 border"></div>
                 <span className="text-gray-700 text-sm">Selected Seat</span>
@@ -386,6 +386,24 @@ export default function TrainSeats() {
         )}
       </div>
 
+            {/* Seat Stats Section */}
+      <div className="flex flex-col gap-3 p-4 border rounded-lg shadow-sm bg-white ml-260 top-0 w-[400px] sticky">
+        <h3 className="text-md font-semibold text-gray-700">Seat Stats</h3>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-gray-500"></span>
+          <span>Total: {seats.length}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-green-500"></span>
+          <span>Available: {seats.filter(s => !s.sold).length}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-red-500"></span>
+          <span>Sold: {seats.filter(s => s.sold).length}</span>
+        </div>
+      </div>
+
+
       {/* Bottom Confirm Section */}
       {seats.length > 0 && (
         <div className="mt-6 flex flex-col items-center gap-3 sticky bottom-0 border bg-white w-full p-6 rounded-xl">
@@ -394,20 +412,25 @@ export default function TrainSeats() {
             {seats.filter(s => s.selected).map(s => s.id).join(", ") || "None"}
           </p>
           <Button
-            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() =>
-              alert(
-                `Tier: ${selectedTier || "None"}\nCoach: ${
-                  selectedCoach || "None"
-                }\nSeats: ${
-                  seats.filter(s => s.selected).map(s => s.id).join(", ") ||
-                  "None"
-                }`
-              )
-            }
+        className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => {
+            const bookedSeats = seats.filter(s => s.selected)
+            fetch("/api/booking", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ bookedSeats }),
+            })
+              .then(res => res.json())
+              .then(data => {
+                setSeats(data.seats) // update seat statuses
+                alert("Booking confirmed ✅")
+              })
+          }}
+
           >
             Confirm Seats
           </Button>
+
         </div>
       )}
     </div>
