@@ -33,6 +33,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {format} from "date-fns";
 import {AsyncQueryCombobox} from "@/components/async-search-combobox";
 import {Input} from "@/components/ui/input";
+import {useRouter} from "next/navigation";
 
 const TrainLookupFormSchema = z.object({
     from: z.string({error: "Please select a boarding station."}),
@@ -48,7 +49,23 @@ const PNRLookupFormSchema = z.object({
     pnr: z.string().min(1, {error: "Please enter a valid number."}),
 });
 
-export const HeroInput = () => {
+type FormValues = {
+    from: string
+    to: string
+    date: string
+    __boardingDisplay: string
+    __destinationDisplay: string
+};
+
+
+type HeroInputProps = {
+    simplifiedSearchMode?: boolean;
+    initialValues?: Partial<FormValues>;
+}
+
+export const HeroInput = ({simplifiedSearchMode = false, initialValues}: HeroInputProps) => {
+    const router = useRouter()
+
     const pnrform = useForm<z.infer<typeof PNRLookupFormSchema>>({
         resolver: zodResolver(PNRLookupFormSchema),
         defaultValues: {
@@ -57,7 +74,14 @@ export const HeroInput = () => {
     });
 
     const form = useForm<z.infer<typeof TrainLookupFormSchema>>({
-        resolver: zodResolver(TrainLookupFormSchema)
+        resolver: zodResolver(TrainLookupFormSchema),
+        defaultValues: {
+            from: initialValues?.from ?? "",
+            to: initialValues?.to ?? "",
+            date: initialValues?.date ? new Date(initialValues.date) : undefined,
+            __boardingDisplay: initialValues?.__boardingDisplay ?? "",
+            __destinationDisplay: initialValues?.__destinationDisplay ?? "",
+        }
     });
 
     const swapStations = () => {
@@ -78,14 +102,23 @@ export const HeroInput = () => {
     const [openCBX2, setOpenCBX2] = useState(false);
 
     function onSubmit(data: z.infer<typeof TrainLookupFormSchema>) {
-        // todo: implement pending
-        toast("You submitted the following values", {
-            description: (
-                <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-            ),
-        })
+        //
+        // toast("You submitted the following values", {
+        //     description: (
+        //         <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
+        //   <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+        // </pre>
+        //     ),
+        // });
+
+        const params = new URLSearchParams({
+            from: data.from,
+            to: data.to,
+            date: data.date.toISOString().split("T")[0],
+            __boardingDisplay: data.__boardingDisplay,
+            __destinationDisplay: data.__destinationDisplay,
+        }).toString();
+        router.push(`/search?${params}`)
     }
 
     function onSubmitPNRLookup(data: z.infer<typeof PNRLookupFormSchema>) {
@@ -100,15 +133,25 @@ export const HeroInput = () => {
     }
 
     return (
-        <div className="bg-white/20 backdrop-blur-md border border-white/30 shadow-lg
-          rounded-2xl p-6 w-full max-w-3xl mt-6 dark">
+        <div
+            className={cn(
+                "bg-white/20 backdrop-blur-md border border-white/30 shadow-lg",
+                "rounded-2xl p-6 w-full max-w-3xl mt-6",
+                !simplifiedSearchMode && "dark",
+                simplifiedSearchMode && "bg-white/80"
+            )}>
 
             <Tabs defaultValue="book">
-                <TabsList className="bg-white/10">
+                <TabsList
+                    className={cn(
+                        "bg-white/10",
+                        simplifiedSearchMode && "hidden",
+                    )}
+                >
                     <TabsTrigger value="book">🚆 Book a Train</TabsTrigger>
                     <TabsTrigger value="pnr">🎫 PNR Status</TabsTrigger>
                 </TabsList>
-                <div className="mb-3"/>
+                {!simplifiedSearchMode && <div className="mb-3"/>}
                 <TabsContent value="book">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -128,7 +171,7 @@ export const HeroInput = () => {
                                                                 role="combobox"
                                                                 className={cn(
                                                                     'justify-between w-[160px]',
-                                                                    !field.value && "text-white/80"
+                                                                    !field.value && !simplifiedSearchMode && "text-white/80"
                                                                 )}
                                                             >
                                                                 {field.value ? form.getValues("__boardingDisplay") : "Boarding"}
@@ -176,7 +219,7 @@ export const HeroInput = () => {
                                                                 role="combobox"
                                                                 className={cn(
                                                                     'justify-between w-[160px]',
-                                                                    !field.value && "text-white/80"
+                                                                    !field.value && !simplifiedSearchMode &&  "text-white/80"
                                                                 )}
                                                             >
                                                                 {field.value ? form.getValues("__destinationDisplay") : "Destination"}
@@ -212,7 +255,7 @@ export const HeroInput = () => {
                                                                 variant={"outline"}
                                                                 className={cn(
                                                                     "w-[160px] pl-3 text-left",
-                                                                    !field.value && "text-white/80"
+                                                                    !field.value && !simplifiedSearchMode && "text-white/80"
                                                                 )}
                                                             >
                                                                 {field.value ? (
@@ -240,7 +283,10 @@ export const HeroInput = () => {
 
                                 {/* Search Button */}
                                 <Button
-                                    className="bg-rose-700/40 hover:bg-rose-800 text-white px-6 py-2 w-full md:w-auto"
+                                    className={cn(
+                                        "bg-rose-700/40 hover:bg-rose-800 text-white px-6 py-2 w-full md:w-auto",
+                                        simplifiedSearchMode && "bg-red-800 hover:bg-red-900",
+                                    )}
                                 >
                                     Search Trains
                                 </Button>

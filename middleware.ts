@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { jwtVerify } from 'jose';
+import { verifyJwtToken } from './lib/auth';
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const token = req.headers.get("authorization")?.split(" ")[1];
+  const verifiedToken =
+          token &&
+          (await verifyJwtToken(token).catch((err) => {
+              // console.log(err); if you are experiencing issues, uncomment this line to see the error
+          }));
 
-  if (!token) {
+  if (!verifiedToken) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET as string));
     return NextResponse.next(); // ✅ request continues
   } catch(e) {
     console.error("Token verification error:", e);
@@ -20,6 +24,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/ping/:path*", "/api/admin/:path*", "/api/verify-token/:path*"],
-
+  matcher: ["/api/ping/:path*", "/api/admin/:path*", "/api/verify-token/:path*"]
 };
