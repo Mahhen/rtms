@@ -7,7 +7,8 @@ interface BookedSeat {
 }
 
 interface SeatClass {
-  class_name: string
+  class_name: string     // e.g., "2AC"
+  coach_name: string     // e.g., "B1", "B2"
   seat_type: string
   total: number
   booked: number
@@ -20,13 +21,14 @@ interface WaitingList {
 }
 
 export interface ISeats extends Document {
-  train_no: Number       // ✅ changed from train_id:ObjectId → train_no:String
+  train_no: Number
   journey_date: Date
   classes: SeatClass[]
   waiting_list: WaitingList
   created_at: Date
   availability: {
     class_name: string
+    coach_name: string
     seat_type: string
     available: number
   }[]
@@ -40,14 +42,15 @@ const bookedSeatSchema = new Schema<BookedSeat>({
 
 const seatClassSchema = new Schema<SeatClass>({
   class_name: { type: String, required: true },
+  coach_name: { type: String, required: true },  // ✅ added coach_name
   seat_type: { type: String, required: true },
-  total: { type: Number, default: 0 },
+  total: { type: Number, default: 48 },
   booked: { type: Number, default: 0 },
   bookedSeats: [bookedSeatSchema],
 })
 
 const seatsSchema = new Schema<ISeats>({
-  train_no: {                  // ✅ now consistent with Train schema
+  train_no: {
     type: Number,
     ref: "Train",
     required: true,
@@ -58,7 +61,7 @@ const seatsSchema = new Schema<ISeats>({
   },
   classes: [seatClassSchema],
   waiting_list: {
-    total: { type: Number, default: 0 },
+    total: { type: Number, default: 48 },
     booked: { type: Number, default: 0 },
   },
   created_at: {
@@ -67,10 +70,11 @@ const seatsSchema = new Schema<ISeats>({
   },
 })
 
-// ✅ Virtual field for available seats
+// ✅ Virtual field for available seats (now includes coach_name)
 seatsSchema.virtual("availability").get(function (this: ISeats) {
   return this.classes.map((cls) => ({
     class_name: cls.class_name,
+    coach_name: cls.coach_name,
     seat_type: cls.seat_type,
     available: cls.total - cls.booked,
   }))

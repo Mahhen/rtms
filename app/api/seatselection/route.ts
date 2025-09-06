@@ -11,72 +11,131 @@ async function connectDB() {
     throw new Error("MONGOURI is not defined in environment variables")
   }
 
-  await mongoose.connect(uri, {
-    dbName: "rtms",
-  })
+  await mongoose.connect(uri, { dbName: "rtms" })
+}
+
+// 🔹 Normalize date (remove time part)
+function normalizeDate(dateStr: string) {
+  const d = new Date(dateStr)
+  d.setUTCHours(0, 0, 0, 0)
+  return d
 }
 
 // ============ GET ============
-// Fetch all seat documents
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB()
-    const seats = await Seats.find({})
-    return NextResponse.json({ success: true, data: seats })
+
+    const { searchParams } = new URL(req.url)
+    const train_no = searchParams.get("train_no")
+    const journey_date = searchParams.get("date")
+    const class_name = searchParams.get("class_name")
+    const coach_name = searchParams.get("coach_name")
+    const seat_type = searchParams.get("seat_type")
+
+    if (!train_no || !journey_date || !class_name || !coach_name || !seat_type) {
+      return NextResponse.json(
+        { success: false, error: "Missing query parameters" },
+        { status: 400 }
+      )
+    }
+
+    const journeyDate = normalizeDate(journey_date)
+
+    const seatDoc = await Seats.findOne({ train_no, journey_date: journeyDate })
+    if (!seatDoc) {
+      return NextResponse.json({ success: true, bookedSeats: [] })
+    }
+
+    const cls = seatDoc.classes.find(
+      (c: any) =>
+        c.class_name === class_name &&
+        c.coach_name === coach_name &&
+        c.seat_type === seat_type
+    )
+
+    return NextResponse.json({
+      success: true,
+      bookedSeats: cls ? cls.bookedSeats : [],
+    })
   } catch (err) {
     console.error("GET error:", err)
-    return NextResponse.json({ success: false, error: "Failed to fetch seats" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch seats" },
+      { status: 500 }
+    )
   }
 }
 
 // ============ POST ============
-// Book seats into DB using Seats schema
 export async function POST(req: Request) {
   try {
     await connectDB()
     const body = await req.json()
     const {
-      train_no,       // ✅ changed from train_id
+      train_no,
       journey_date,
       class_name,
+      coach_name,
       seat_type,
       seats, // array of { seat_number, source, destination }
     } = body
 
-    if (!train_no || !journey_date || !class_name || !seat_type || !Array.isArray(seats)) {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
+    if (
+      !train_no ||
+      !journey_date ||
+      !class_name ||
+      !coach_name ||
+      !seat_type ||
+      !Array.isArray(seats)
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      )
     }
 
-    // ✅ Ensure correct types
-    const journeyDate = new Date(journey_date)
+    const journeyDate = normalizeDate(journey_date)
 
-    // Find or create seat document
     let seatDoc = await Seats.findOne({ train_no, journey_date: journeyDate })
     if (!seatDoc) {
       seatDoc = new Seats({ train_no, journey_date: journeyDate, classes: [] })
     }
 
-    // Find the class entry
     let cls = seatDoc.classes.find(
-      (c) => c.class_name === class_name && c.seat_type === seat_type
+      (c) =>
+        c.class_name === class_name &&
+        c.coach_name === coach_name &&
+        c.seat_type === seat_type
     )
+
     if (!cls) {
-      cls = { class_name, seat_type, total: 0, booked: 0, bookedSeats: [] }
+      cls = {
+        class_name,
+        coach_name,
+        seat_type,
+        total: 48,
+        booked: 0,
+        bookedSeats: [],
+      }
       seatDoc.classes.push(cls)
     }
 
-    // ✅ Prevent duplicate booking
     const alreadyBooked = cls.bookedSeats.map((s: any) => s.seat_number)
-    const newSeats = seats.filter((s: any) => !alreadyBooked.includes(s.seat_number))
+    const newSeats = seats.filter(
+      (s: any) => !alreadyBooked.includes(`${coach_name}-${s.seat_number}`)
+    )
 
     if (newSeats.length === 0) {
-      return NextResponse.json({ success: false, error: "Selected seats already booked" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: "Selected seats already booked" },
+        { status: 400 }
+      )
     }
 
-    // Add new booked seats
     for (const s of newSeats) {
       cls.bookedSeats.push({
-        seat_number: s.seat_number,
+        seat_number: `${coach_name}-${s.seat_number}`, // ✅ prefixed
         source: s.source,
         destination: s.destination,
       })
@@ -92,6 +151,9 @@ export async function POST(req: Request) {
     })
   } catch (error) {
     console.error("POST error:", error)
-    return NextResponse.json({ success: false, error: "Failed to book seats" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: "Failed to book seats" },
+      { status: 500 }
+    )
   }
 }
