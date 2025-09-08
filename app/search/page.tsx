@@ -77,10 +77,14 @@ export default function TrainSearchResults() {
     if (masterDetail) {
       const trainNumber = masterDetail.trainNumber;
       const journeyDate = paramData.date;
+      const src = paramData.from;
+      const dest = paramData.to;
 
       const params = new URLSearchParams({
         trainNumber: trainNumber.toString(),
-        journeyDate: journeyDate      
+        journeyDate: journeyDate,
+        src: src.toString(),
+        dest: dest.toString()      
       }).toString();
 
       router.push(`/seatselection?${params}`);

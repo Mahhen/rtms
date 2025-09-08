@@ -29,11 +29,13 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const train_no = searchParams.get("train_no")
     const journey_date = searchParams.get("date")
+    const src = searchParams.get("src")
+    const dest = searchParams.get("dest")
     const class_name = searchParams.get("class_name")
     const coach_name = searchParams.get("coach_name")
     const seat_type = searchParams.get("seat_type")
 
-    if (!train_no || !journey_date || !class_name || !coach_name || !seat_type) {
+    if (!train_no || !journey_date || !class_name || !coach_name || !seat_type || !src || !dest) {
       return NextResponse.json(
         { success: false, error: "Missing query parameters" },
         { status: 400 }
@@ -78,6 +80,8 @@ export async function POST(req: Request) {
       class_name,
       coach_name,
       seat_type,
+      src,
+      dest,
       seats, // array of { seat_number, source, destination }
     } = body
 
@@ -87,6 +91,8 @@ export async function POST(req: Request) {
       !class_name ||
       !coach_name ||
       !seat_type ||
+      !src ||
+      !dest ||
       !Array.isArray(seats)
     ) {
       return NextResponse.json(
@@ -136,8 +142,8 @@ export async function POST(req: Request) {
     for (const s of newSeats) {
       cls.bookedSeats.push({
         seat_number: `${coach_name}-${s.seat_number}`, // ✅ prefixed
-        source: s.source,
-        destination: s.destination,
+        source: src,
+        destination: dest,
       })
     }
     cls.booked += newSeats.length

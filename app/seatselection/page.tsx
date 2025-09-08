@@ -90,7 +90,9 @@ export default function TrainSeats() {
 
   const params = useSearchParams();
   const trainNumber = Number(params.get("trainNumber") ?? "0");
-  const journeyDate = new Date(params.get("journeyDate") ?? "")
+  const journeyDate = new Date(params.get("journeyDate") ?? "");
+  const src = String(params.get("src") ?? "");
+  const dest = String(params.get("dest") ?? "")
 
 
   // whenever tier & coach are chosen, generate seat layout
@@ -107,8 +109,9 @@ export default function TrainSeats() {
             }
 
             fetch(
-              `/api/seatselection?train_no=${trainNumber}&date=${journeyDate.toISOString()}&class_name=${selectedTier}&coach_name=${selectedCoach}&seat_type=default`
+            `/api/seatselection?train_no=${trainNumber}&date=${journeyDate.toISOString()}&class_name=${selectedTier}&coach_name=${selectedCoach}&seat_type=default&src=${encodeURIComponent(src)}&dest=${encodeURIComponent(dest)}`
             )
+
               .then(res => res.json())
               .then(data => {
                 const soldSeats = data.success
@@ -475,6 +478,8 @@ export default function TrainSeats() {
               body: JSON.stringify({
                 train_no: trainNumber,
                 journey_date: journeyDate.toISOString(),
+                src: src,
+                dest: dest,
                 class_name: selectedTier,
                 coach_name: selectedCoach,  // ✅ added properly
                 seat_type: "default",       // can refine later
