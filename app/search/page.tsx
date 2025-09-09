@@ -72,6 +72,23 @@ export default function TrainSearchResults() {
     const min = Number(data[1]);
     return `${hr} h ${min} min`;
   };
+  const [isAuth, setAuth] = useState(false);
+
+useEffect(() => {
+  (async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const res = await fetch("/api/verify-token", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+    });
+
+    setAuth(res.ok);
+  })();
+}, []);
 
   function selectTicket() {
     if (masterDetail) {
@@ -206,22 +223,22 @@ export default function TrainSearchResults() {
                   <div className="grid grid-cols-2 divide-x-[1.5px] divide-[#e5e5e5]">
                     <div className="flex flex-col p-4">
                       <div className="text-xs text-gray-500">1AC</div>
-                      <div className="text-sm font-semibold">from INR 659</div>
+                      <div className="text-sm font-semibold">from INR {masterDetail ? Math.floor(Number(masterDetail.distance) * 2.7952755) : "-"}</div>
                     </div>
                     <div className="flex flex-col p-4">
                       <div className="text-xs text-gray-500">2AC</div>
-                      <div className="text-sm font-semibold">from INR 459</div>
+                      <div className="text-sm font-semibold">from INR {masterDetail ? Math.floor(Number(masterDetail.distance) * 1.657122) : "-"}</div>
                     </div>
                   </div>
                   <div className="static mx-[-25] h-[1px] bg-[#e5e5e5]" />
                   <div className="grid grid-cols-2 divide-x-[1.5px] divide-[#e5e5e5]">
                     <div className="flex flex-col p-4">
                       <div className="text-xs text-gray-500">3AC</div>
-                      <div className="text-sm font-semibold">from INR 359</div>
+                      <div className="text-sm font-semibold">from INR {masterDetail ? Math.floor(Number(masterDetail.distance) * 1.1524695) : "-"}</div>
                     </div>
                     <div className="flex flex-col p-4">
                       <div className="text-xs text-gray-500">Sleeper</div>
-                      <div className="text-sm font-semibold">from INR 159</div>
+                      <div className="text-sm font-semibold">from INR {masterDetail ? Math.floor(Number(masterDetail.distance) * 0.433070866) : "-"}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -312,13 +329,40 @@ export default function TrainSearchResults() {
         )}
         {selectionMode && (
           <div className="sticky bottom-0 bg-white rounded-lg w-full min-h-[70px] ">
-            <div className="flex flex-col h-[70px] justify-center">
-              <div className="ml-auto mr-[275px]">
-                <Button className="bg-red-500 hover:bg-red-700 shadow-lg shadow-red-500/50" onClick={selectTicket}>
-                  Select Tickets
+            
+                {
+                  isAuth ?
+                  <>
+                <div className="flex flex-col h-[70px] justify-center">
+                  <div className="ml-auto mr-[275px]">
+                    <Button className="bg-red-500 hover:bg-red-700 shadow-lg shadow-red-500/50" onClick={selectTicket}>
+                      Select Tickets
+                    </Button>
+                  </div>
+                </div>
+                
+                </>
+                :
+                <>
+                
+                
+                <div className="flex flex-row gap-3 h-[70px] justify-center items-center">
+                  <div className="ml-[10%]">
+                    <p>Please Login to Select your Seats</p>
+
+                    </div>                    
+                  <div className="ml-auto mr-[275px]">
+                    <Button className="bg-red-500 hover:bg-red-700 shadow-lg shadow-red-500/50" onClick={selectTicket}>
+                 
+                  <a href="/login" className="ml-2">Login</a>
                 </Button>
-              </div>
-            </div>
+                  </div>
+                </div>
+                
+                </>
+
+                }
+              
           </div>
         )}
       </div>
