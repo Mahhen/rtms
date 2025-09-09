@@ -8,7 +8,7 @@ import { fetchTrains, TrainScheduleData } from "@/api/traindet";
 import IRLogo from "@/components/ir-logo";
 import { cn } from "@/lib/utils";
 import { HeroInput } from "@/components/hero-input";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function TrainSearchResults() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +16,8 @@ export default function TrainSearchResults() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [trains, setTrains] = useState<TrainScheduleData[]>([]);
   const [masterDetail, setMasterDetail] = useState<TrainScheduleData>();
+
+  const router = useRouter();
 
   const params = useSearchParams();
   const paramData = {
@@ -70,6 +72,24 @@ export default function TrainSearchResults() {
     const min = Number(data[1]);
     return `${hr} h ${min} min`;
   };
+
+  function selectTicket() {
+    if (masterDetail) {
+      const trainNumber = masterDetail.trainNumber;
+      const journeyDate = paramData.date;
+      const src = paramData.from;
+      const dest = paramData.to;
+
+      const params = new URLSearchParams({
+        trainNumber: trainNumber.toString(),
+        journeyDate: journeyDate,
+        src: src.toString(),
+        dest: dest.toString()      
+      }).toString();
+
+      router.push(`/seatselection?${params}`);
+    }
+  }
 
   return (
     <div className="bg-[#f6f6f6]">
@@ -294,7 +314,7 @@ export default function TrainSearchResults() {
           <div className="sticky bottom-0 bg-white rounded-lg w-full min-h-[70px] ">
             <div className="flex flex-col h-[70px] justify-center">
               <div className="ml-auto mr-[275px]">
-                <Button className="bg-red-500 hover:bg-red-700 shadow-lg shadow-red-500/50">
+                <Button className="bg-red-500 hover:bg-red-700 shadow-lg shadow-red-500/50" onClick={selectTicket}>
                   Select Tickets
                 </Button>
               </div>

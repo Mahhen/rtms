@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useSearchParams } from "next/navigation"
 
 type SeatType = "LB" | "MB" | "UB" | "SL" | "SU"
 
@@ -32,40 +33,41 @@ type Seat = {
 // 2AC (Default)
 function createBay(bayNumber: number): Seat[] {
   return [
-    { id: `LB${bayNumber}A`, type: "LB", selected: false },
-    { id: `UB${bayNumber}A`, type: "UB", selected: false },
-    { id: `LB${bayNumber}B`, type: "LB", selected: false },
-    { id: `UB${bayNumber}B`, type: "UB", selected: false },
-    { id: `SL${bayNumber}`, type: "SL", selected: false },
-    { id: `SU${bayNumber}`, type: "SU", selected: false },
+    { id: `LB${bayNumber}A`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false, sold: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false, sold: false },
+    { id: `SL${bayNumber}`, type: "SL", selected: false, sold: false },
+    { id: `SU${bayNumber}`, type: "SU", selected: false, sold: false },
   ]
 }
 
 // 3AC & Sleeper
 function createBay3AC(bayNumber: number): Seat[] {
   return [
-    { id: `LB${bayNumber}A`, type: "LB", selected: false },
-    { id: `MB${bayNumber}A`, type: "MB", selected: false },
-    { id: `UB${bayNumber}A`, type: "UB", selected: false },
+    { id: `LB${bayNumber}A`, type: "LB", selected: false, sold: false },
+    { id: `MB${bayNumber}A`, type: "MB", selected: false, sold: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false, sold: false },
 
-    { id: `SL${bayNumber}`, type: "SL", selected: false },
-    { id: `SU${bayNumber}`, type: "SU", selected: false },
+    { id: `SL${bayNumber}`, type: "SL", selected: false, sold: false },
+    { id: `SU${bayNumber}`, type: "SU", selected: false, sold: false },
 
-    { id: `LB${bayNumber}B`, type: "LB", selected: false },
-    { id: `MB${bayNumber}B`, type: "MB", selected: false },
-    { id: `UB${bayNumber}B`, type: "UB", selected: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false, sold: false },
+    { id: `MB${bayNumber}B`, type: "MB", selected: false, sold: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false, sold: false },
   ]
 }
 
 // 1AC
 function createBay1AC(bayNumber: number): Seat[] {
   return [
-    { id: `LB${bayNumber}A`, type: "LB", selected: false },
-    { id: `UB${bayNumber}A`, type: "UB", selected: false },
-    { id: `LB${bayNumber}B`, type: "LB", selected: false },
-    { id: `UB${bayNumber}B`, type: "UB", selected: false },
+    { id: `LB${bayNumber}A`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}A`, type: "UB", selected: false, sold: false },
+    { id: `LB${bayNumber}B`, type: "LB", selected: false, sold: false },
+    { id: `UB${bayNumber}B`, type: "UB", selected: false, sold: false },
   ]
 }
+
 
 const BAY_COUNT = 8
 
@@ -86,49 +88,87 @@ export default function TrainSeats() {
   const [tierOpen, setTierOpen] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
 
+  const params = useSearchParams();
+  const trainNumber = Number(params.get("trainNumber") ?? "0");
+  const journeyDate = new Date(params.get("journeyDate") ?? "");
+  const src = String(params.get("src") ?? "");
+  const dest = String(params.get("dest") ?? "")
+
+
   // whenever tier & coach are chosen, generate seat layout
-  useEffect(() => {
-    if (selectedTier && selectedCoach) {
-      if (selectedTier === "3AC" || selectedTier === "Sleeper") {
-        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay3AC(i + 1)).flat())
-      } else if (selectedTier === "1AC") {
-        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay1AC(i + 1)).flat())
-      } else {
-        setSeats(Array.from({ length: BAY_COUNT }, (_, i) => createBay(i + 1)).flat())
+          useEffect(() => {
+          if (selectedTier && selectedCoach) {
+            let generatedSeats: Seat[] = []
+
+            if (selectedTier === "3AC" || selectedTier === "Sleeper") {
+              generatedSeats = Array.from({ length: BAY_COUNT }, (_, i) => createBay3AC(i + 1)).flat()
+            } else if (selectedTier === "1AC") {
+              generatedSeats = Array.from({ length: BAY_COUNT }, (_, i) => createBay1AC(i + 1)).flat()
+            } else {
+              generatedSeats = Array.from({ length: BAY_COUNT }, (_, i) => createBay(i + 1)).flat()
+            }
+
+            fetch(
+            `/api/seatselection?train_no=${trainNumber}&date=${journeyDate.toISOString()}&class_name=${selectedTier}&coach_name=${selectedCoach}&seat_type=default&src=${encodeURIComponent(src)}&dest=${encodeURIComponent(dest)}`
+            )
+
+              .then(res => res.json())
+              .then(data => {
+                const soldSeats = data.success
+                    ? data.bookedSeats.map((s: any) => {
+                        const seatNum = s.seat_number
+                        return seatNum.includes("-") ? seatNum.split("-")[1] : seatNum
+                      })
+                    : []
+
+                  setSeats(
+                    generatedSeats.map(s =>
+                      soldSeats.includes(s.id) ? { ...s, sold: true } : s
+                    )
+                  )
+
+              })
+              .catch(err => {
+                console.error("❌ Failed to fetch seats:", err)
+              })
+          } else {
+            setSeats([])
+          }
+        }, [selectedTier, selectedCoach])
+
+
+
+
+
+
+      const toggleSeat = (id: string) => {
+        setSeats(prev =>
+          prev.map(s => (s.id === id ? { ...s, selected: !s.selected } : s))
+        )
       }
-    } else {
-      setSeats([])
-    }
-  }, [selectedTier, selectedCoach])
 
-  const toggleSeat = (id: string) => {
-    setSeats(prev =>
-      prev.map(s => (s.id === id ? { ...s, selected: !s.selected } : s))
-    )
-  }
-
-  const renderSeat = (id: string, label: SeatType) => {
-    const seat = seats.find(s => s.id === id)
-    if (!seat) return null
-    return (
-      <div
-        onClick={() => !seat.sold && toggleSeat(id)} // disable click if sold
-        role="button"
-        aria-pressed={seat.selected}
-        title={id}
-        className={cn(
-          "flex items-center justify-center rounded-md border text-sm font-medium cursor-pointer transition",
-          "w-[48px] h-[48px] m-[4px]",
-          seat.sold
-            ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-70"
-            : seat.selected
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white text-gray-600 border-blue-600 hover:bg-blue-50"
-        )}
-      >
-        {label}
-      </div>
-    )
+      const renderSeat = (id: string, label: SeatType) => {
+        const seat = seats.find(s => s.id === id)
+        if (!seat) return null
+        return (
+          <div
+            onClick={() => !seat.sold && toggleSeat(id)} // disable click if sold
+            role="button"
+            aria-pressed={seat.selected}
+            title={id}
+            className={cn(
+              "flex items-center justify-center rounded-md border text-sm font-medium cursor-pointer transition",
+              "w-[48px] h-[48px] m-[4px]",
+              seat.sold
+                ? "bg-red-500 text-white border-red-600 cursor-not-allowed opacity-70"
+                : seat.selected
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-600 border-blue-600 hover:bg-blue-50"
+            )}
+          >
+      {label}
+    </div>
+  )
   }
 
   // ---------------- Layout Components ----------------
@@ -335,56 +375,81 @@ export default function TrainSeats() {
           </Popover>
         </div>
 
-        {/* RIGHT SIDE - Seat Layout + Arrow + Legend */}
-        {selectedTier && selectedCoach && (
-          <div className="flex items-start gap-12 ml-8.5">
-            {/* Seat Layout */}
-            <>
-              {selectedTier === "1AC" && <OneACLayout />}
-              {selectedTier === "2AC" && <DefaultLayout />}
-              {selectedTier === "3AC" && <ThreeACLayout />}
-              {selectedTier === "Sleeper" && <SleeperLayout />}
-            </>
+                  {/* RIGHT SIDE - Seat Layout + Arrow + Legend + Seat Stats */}
 
-            {/* Travel Direction Arrow */}
-            <div className="flex flex-col items-center mt-40 sticky top-20">
-              <span className="text-gray-600 font-semibold mb-2">
-                Direction of Travel
-              </span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-20 w-10 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 19V5m0 0l-7 7m7-7l7 7"
-                />
-              </svg>
-            </div>
+          {selectedTier && selectedCoach && (
+            <div className="flex items-start gap-12 ml-8.5">
+              {/* Seat Layout */}
+              <>
+                {selectedTier === "1AC" && <OneACLayout />}
+                {selectedTier === "2AC" && <DefaultLayout />}
+                {selectedTier === "3AC" && <ThreeACLayout />}
+                {selectedTier === "Sleeper" && <SleeperLayout />}
+              </>
+            <div className="flex flex-col items-center gap-6 ml-5 sticky top-20">
+              <div className="flex flex-row items-center gap-8 ml-5 top-20">
+              {/* Travel Direction Arrow */}
+              <div className="flex flex-col items-center mt-0 sticky top-20">
+                <span className="text-gray-600 font-semibold mb-2">
+                  Direction of Travel
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-20 w-10 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 19V5m0 0l-7 7m7-7l7 7"
+                  />
+                </svg>
+              </div>
 
-            {/* Legend Section */}
-            <div className="flex flex-col gap-3 p-4 border rounded-lg shadow-sm bg-white mt-37 ml-5 sticky top-20">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-blue-600 border"></div>
-                <span className="text-gray-700 text-sm">Selected Seat</span>
+              {/* Legend Section */}
+              <div className="flex flex-col gap-3 p-4 border rounded-lg shadow-sm bg-white mt-0 ml-5 sticky top-20">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-blue-600 border"></div>
+                  <span className="text-gray-700 text-sm">Selected Seat</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-red-500 border"></div>
+                  <span className="text-gray-700 text-sm">Sold Seat</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-white border border-blue-600"></div>
+                  <span className="text-gray-700 text-sm">Available Seat</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-red-500 border"></div>
-                <span className="text-gray-700 text-sm">Sold Seat</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-white border border-blue-600"></div>
-                <span className="text-gray-700 text-sm">Available Seat</span>
+              {/* ✅ Seat Stats Section (moved inside) */}
+              <div className="flex flex-col gap-3 p-5 border rounded-lg shadow-sm bg-white w-[330px] sticky top-20 mt-5 ml-5">
+                <h3 className="text-md font-semibold text-gray-700">Seat Stats</h3>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-gray-500"></span>
+                  <span>Total: {seats.length}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                  <span>Available: {seats.filter(s => !s.sold).length}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                  <span>Sold: {seats.filter(s => s.sold).length}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+            </div>
+          )}
+
+          
+
       </div>
+        
+
 
       {/* Bottom Confirm Section */}
       {seats.length > 0 && (
@@ -393,21 +458,64 @@ export default function TrainSeats() {
           <p className="text-gray-700">
             {seats.filter(s => s.selected).map(s => s.id).join(", ") || "None"}
           </p>
-          <Button
-            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() =>
-              alert(
-                `Tier: ${selectedTier || "None"}\nCoach: ${
-                  selectedCoach || "None"
-                }\nSeats: ${
-                  seats.filter(s => s.selected).map(s => s.id).join(", ") ||
-                  "None"
-                }`
-              )
+        <Button
+          className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => {
+            const bookedSeats = seats.filter(s => s.selected).map(s => ({
+              seat_number: s.id,  // already includes coach prefix
+              source: "SRC",       // TODO: replace dynamically
+              destination: "DST",  // TODO: replace dynamically
+            }))
+
+            if (bookedSeats.length === 0) {
+              alert("Please select at least one seat")
+              return
             }
-          >
-            Confirm Seats
-          </Button>
+
+            fetch("/api/seatselection", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                train_no: trainNumber,
+                journey_date: journeyDate.toISOString(),
+                src: src,
+                dest: dest,
+                class_name: selectedTier,
+                coach_name: selectedCoach,  // ✅ added properly
+                seat_type: "default",       // can refine later
+                seats: bookedSeats,
+              }),
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  const soldSeats = data.data.classes.flatMap((cls: any) =>
+                    cls.bookedSeats.map((s: any) => {
+                      const seatNum = s.seat_number
+                      return seatNum.includes("-") ? seatNum.split("-")[1] : seatNum
+                    })
+                  )
+
+
+                  setSeats(prev =>
+                    prev.map(s =>
+                      soldSeats.includes(s.id)
+                        ? { ...s, sold: true, selected: false }
+                        : s
+                    )
+                  )
+
+                  alert("Booking confirmed ✅")
+                } else {
+                  alert("Booking failed ❌ " + (data.error || "Unknown error"))
+                }
+              })
+              .catch(() => alert("Server error ❌"))
+          }}
+        >
+          Confirm Seats
+        </Button>
+
         </div>
       )}
     </div>
