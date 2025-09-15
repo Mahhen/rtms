@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useSearchParams } from "next/navigation"
+import {toast} from "sonner";
 
 type SeatType = "LB" | "MB" | "UB" | "SL" | "SU"
 
@@ -468,7 +469,7 @@ export default function TrainSeats() {
             }))
 
             if (bookedSeats.length === 0) {
-              alert("Please select at least one seat")
+              toast("Please select at least one seat")
               return
             }
 

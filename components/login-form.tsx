@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -37,14 +38,14 @@ export function LoginForm({
       if (res.ok) {
         localStorage.setItem("token", data.token);
 
-        alert("Login successful 🎉");
+        toast("Login successful 🎉");
         window.location.href = "/booking"; 
       } else {
-        alert(data.message || "Login failed ❌");
+        toast(data.message || "Login failed ❌");
       }
     } catch (err) {
       console.error("Login error:", err);
-      alert("Something went wrong");
+      toast("Something went wrong");
     } finally {
       setLoading(false);
     }
