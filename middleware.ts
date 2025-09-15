@@ -24,5 +24,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/ping/:path*", "/api/admin/:path*", "/api/verify-token/:path*"]
+  matcher: ["/api/ping/:path*", "/api/admin/:path*", "/api/verify-token/:path*","/api/userprofile/:path"]
 };
