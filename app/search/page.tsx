@@ -96,12 +96,14 @@ useEffect(() => {
       const journeyDate = paramData.date;
       const src = paramData.from;
       const dest = paramData.to;
+      const distance = masterDetail.distance;
 
       const params = new URLSearchParams({
         trainNumber: trainNumber.toString(),
         journeyDate: journeyDate,
         src: src.toString(),
-        dest: dest.toString()      
+        dest: dest.toString(),
+        distance: distance.toString()     
       }).toString();
 
       router.push(`/seatselection?${params}`);

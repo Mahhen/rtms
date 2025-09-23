@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CircleCheckBig } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -42,7 +43,7 @@ export function RegisterForm({
 
   // ✅ Send OTP
   const sendOtp = async () => {
-    if (!email) return alert("Enter email first!");
+    if (!email) return toast("Enter email first!");
 
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedOtp(newOtp);
@@ -56,23 +57,23 @@ export function RegisterForm({
 
       if (res.ok) {
         setDialogOpen(true);
-        alert("OTP sent ✅");
+        toast("OTP sent ✅");
       } else {
-        alert("Failed to send OTP ❌");
+        toast("Failed to send OTP ❌");
       }
     } catch (err) {
       console.error("Error sending OTP:", err);
-      alert("Error sending OTP ❌");
+      toast("Error sending OTP ❌");
     }
   };
 
   // ✅ Verify OTP
   const verifyOtp = () => {
     if (otp === generatedOtp) {
-      alert("Email verified 🎉");
+      toast("Email verified 🎉");
       setDialogOpen(false);
     } else {
-      alert("Invalid OTP ❌");
+      toast("Invalid OTP ❌");
     }
   };
 
@@ -95,7 +96,7 @@ export function RegisterForm({
     const confirmPassword = target.confirmPassword.value;
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match ❌");
+      toast("Passwords do not match ❌");
       return;
     }
 
@@ -108,13 +109,13 @@ export function RegisterForm({
 
       const data = await res.json();
       if (res.ok) {
-        alert(data.message);
+        toast(data.message);
       } else {
-        alert(data.message || "Failed to register ❌");
+        toast(data.message || "Failed to register ❌");
       }
     } catch (err) {
       console.error(err);
-      alert("Server error ❌");
+      toast("Server error ❌");
     }
   };
 

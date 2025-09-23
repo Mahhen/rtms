@@ -10,7 +10,7 @@ const firebaseConfig = {
   storageBucket: "rtms-74cc6.firebasestorage.app",
   messagingSenderId: "723206051993",
   appId: "1:723206051993:web:cf8f68a174310fda0b4008",
-  measurementId: "G-2NQ33JBQ84"
+  measurementId: "G-2NQ33JBQ84",
 };
 
 
