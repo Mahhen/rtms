@@ -1,86 +1,35 @@
-import mongoose, { Document, Schema, Model } from "mongoose"
+// models/seats.ts
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-interface BookedSeat {
-  seat_number: string
-  source: string
-  destination: string
-}
+export interface IPassenger { name: string; age: number; gender: string; }
+export interface IBookedSeat { seat_number: string; source: string; destination: string; booked_at: Date; passenger: IPassenger; }
+export interface ISeatClass { class_name: string; coach_name: string; seat_type: string; total: number; booked: number; bookedSeats: IBookedSeat[]; }
+export interface ISeats extends Document { train_no: string; journey_date: Date; classes: ISeatClass[]; }
 
-interface SeatClass {
-  class_name: string     // e.g., "2AC"
-  coach_name: string     // e.g., "B1", "B2"
-  seat_type: string
-  total: number
-  booked: number
-  bookedSeats: BookedSeat[]
-}
+const PassengerSchema: Schema = new Schema({
+  name: { type: String, required: true }, age: { type: Number, required: true },
+  gender: { type: String, required: true },
+});
 
-interface WaitingList {
-  total: number
-  booked: number
-}
+const BookedSeatSchema: Schema = new Schema({
+  seat_number: { type: String, required: true }, source: { type: String, required: true },
+  destination: { type: String, required: true }, booked_at: { type: Date, default: Date.now },
+  passenger: { type: PassengerSchema, required: true },
+});
 
-export interface ISeats extends Document {
-  train_no: Number
-  journey_date: Date
-  classes: SeatClass[]
-  waiting_list: WaitingList
-  created_at: Date
-  availability: {
-    class_name: string
-    coach_name: string
-    seat_type: string
-    available: number
-  }[]
-}
+const SeatClassSchema: Schema = new Schema({
+  class_name: { type: String, required: true }, coach_name: { type: String, required: true },
+  seat_type: { type: String, required: true }, total: { type: Number, required: true },
+  booked: { type: Number, default: 0 }, bookedSeats: [BookedSeatSchema],
+});
 
-const bookedSeatSchema = new Schema<BookedSeat>({
-  seat_number: { type: String, required: true },
-  source: { type: String, required: true },
-  destination: { type: String, required: true },
-})
+const SeatsSchema: Schema = new Schema({
+  train_no: { type: String, required: true }, journey_date: { type: Date, required: true },
+  classes: [SeatClassSchema],
+}, { timestamps: true });
 
-const seatClassSchema = new Schema<SeatClass>({
-  class_name: { type: String, required: true },
-  coach_name: { type: String, required: true },  // ✅ added coach_name
-  seat_type: { type: String, required: true },
-  total: { type: Number, default: 48 },
-  booked: { type: Number, default: 0 },
-  bookedSeats: [bookedSeatSchema],
-})
+SeatsSchema.index({ train_no: 1, journey_date: 1 }, { unique: true });
 
-const seatsSchema = new Schema<ISeats>({
-  train_no: {
-    type: Number,
-    ref: "Train",
-    required: true,
-  },
-  journey_date: {
-    type: Date,
-    required: true,
-  },
-  classes: [seatClassSchema],
-  waiting_list: {
-    total: { type: Number, default: 48 },
-    booked: { type: Number, default: 0 },
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-})
+const Seats: Model<ISeats> = mongoose.models.Seats || mongoose.model<ISeats>("Seats", SeatsSchema);
 
-// ✅ Virtual field for available seats (now includes coach_name)
-seatsSchema.virtual("availability").get(function (this: ISeats) {
-  return this.classes.map((cls) => ({
-    class_name: cls.class_name,
-    coach_name: cls.coach_name,
-    seat_type: cls.seat_type,
-    available: cls.total - cls.booked,
-  }))
-})
-
-const Seats: Model<ISeats> =
-  mongoose.models.Seats || mongoose.model<ISeats>("Seats", seatsSchema)
-
-export default Seats
+export default Seats;

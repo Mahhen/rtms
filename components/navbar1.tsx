@@ -69,7 +69,7 @@ const Navbar1 = ({
     title: "RailBuddy.com",
   },
   menu = [
-    { title: "Home", url: "#" },
+    { title: "Home", url: "/" },
     {
       title: "Search Trains",
       url: "/search",
@@ -77,7 +77,7 @@ const Navbar1 = ({
     },
     {
       title: "My bookings",
-      url: "/booking",
+      url: "/my-bookings",
       
     },
     {
