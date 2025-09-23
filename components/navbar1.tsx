@@ -82,7 +82,7 @@ const Navbar1 = ({
     },
     {
       title: "Profile",
-      url: "#",
+      url: "/profile",
     },
    
   ],
