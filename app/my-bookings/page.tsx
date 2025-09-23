@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 // import { Badge } from "@/components/ui/badge";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +38,6 @@ export default function MyBookingsPage() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        setLoading(true);
-        // The browser automatically sends the session cookie with this request
         const res = await fetch("/api/my-bookings");
         
         if (!res.ok) {
@@ -63,7 +61,23 @@ export default function MyBookingsPage() {
     };
 
     fetchBookings();
-  }, []); // Empty dependency array means this runs once on component mount
+  }, [loading]);
+
+    async function handleCancel(pnr: string) {
+        setLoading(true);
+        try {
+            const res = await fetch(
+                "/api/cancel-booking",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({pnr}),
+                }
+            );
+        } catch (err) {
+            console.error("Client-side error cancelling booking:", err);
+        }
+    }
 
   if (loading) {
     return (
@@ -91,8 +105,8 @@ export default function MyBookingsPage() {
       </div>
     );
   }
-  
-  return (
+
+    return (
     <div className="container mx-auto p-4 md:p-8 max-w-5xl">
       <div className="flex items-center gap-4 mb-8">
         <Ticket className="h-10 w-10 text-blue-600"/>
@@ -159,6 +173,9 @@ export default function MyBookingsPage() {
                     </div>
                 </div>
               </CardContent>
+                <CardFooter className="ml-auto">
+                    <Button className="primary bg-red-600 hover:bg-red-800" onClick={async () => {await handleCancel(booking.pnr);}}>Cancel</Button>
+                </CardFooter>
             </Card>
           ))}
         </div>

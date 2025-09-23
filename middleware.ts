@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   console.log(`[MIDDLEWARE] Path: ${pathname}`);
 
-  const protectedPaths = ["/my-bookings", "/payment", "/trains", "/api/bookings", "/api/my-bookings"];
+  const protectedPaths = ["/my-bookings", "/payment", "/trains", "/api/bookings", "/api/my-bookings", "/api/userprofile"];
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
   if (!isProtectedPath) {
