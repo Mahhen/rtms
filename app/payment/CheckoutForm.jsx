@@ -12,7 +12,7 @@ export default function CheckoutForm() {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/booking-done`,
+        return_url: `${window.location.origin}/payment_stripe`,
       },
     });
 
