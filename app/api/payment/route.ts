@@ -16,6 +16,9 @@ export async function POST(req: NextRequest) {
       currency: "inr",
       description: `Train ${payload.train_no}`,
       automatic_payment_methods: { enabled: true },
+      metadata: {
+        payload: JSON.stringify(payload)
+      }
     });
 
     return NextResponse.json({
