@@ -44,15 +44,7 @@ export default function UserProfile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("token")
-        if (!token) throw new Error("No token found")
-
-        const decoded = await verifyJwtToken(token)
-        if (!decoded.email) throw new Error("Invalid token")
-
-        const res = await fetch(`/api/userprofile?email=${decoded.email}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const res = await fetch(`/api/userprofile`);
 
         if (!res.ok) throw new Error("Failed to load user")
         const data = await res.json()

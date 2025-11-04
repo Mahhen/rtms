@@ -28,6 +28,7 @@ import { shouldNavVis } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
+import { AuthState } from "./authstate";
 
 interface MenuItem {
   title: string;
@@ -88,6 +89,10 @@ const Navbar1 = ({
       
 
     },
+    {
+      title: "Live Status",
+      url: "/train-status",
+    },
    
   ],
   auth = {
@@ -97,28 +102,6 @@ const Navbar1 = ({
   },
 }: Navbar1Props) => {
   const currentPath = usePathname();
-  const router = useRouter();
-
-  const [isAuth, setAuth] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      
-      const res = await fetch("/api/verify-token", {
-        method: "GET",
-        headers: {"Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}`},
-      })
-      setAuth(res.ok);
-    
-     
-    })();
-  }, []);
-
-  const logoutFn = async () => {
-    localStorage.removeItem("token");
-    router.push('/');
-    setAuth(false);
-  }
 
   return (
     <section className={`p-2 ${shouldNavVis(currentPath) ? '' : 'hidden'}`}>
@@ -148,7 +131,7 @@ const Navbar1 = ({
               </NavigationMenu>
             </div>
           </div>
-          <div className="flex gap-2">
+          {/* <div className="flex gap-2">
             {
               isAuth ?
                   <>
@@ -167,7 +150,8 @@ const Navbar1 = ({
                     </Button>
                   </>
             }
-          </div>
+          </div> */}
+          <AuthState />
         </nav>
 
         {/* Mobile Menu */}
@@ -208,21 +192,7 @@ const Navbar1 = ({
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
-                  <div className="flex flex-col gap-3">
-                    {
-                      isAuth ?
-                          <div>test</div>
-                          :
-                          <>
-                            <Button asChild variant="outline">
-                              <a href={auth.login.url}>{auth.login.title}</a>
-                            </Button>
-                            <Button asChild>
-                              <a href={auth.signup.url}>{auth.signup.title}</a>
-                            </Button>
-                          </>
-                    }
-                  </div>
+                  <AuthState />
                 </div>
               </SheetContent>
             </Sheet>

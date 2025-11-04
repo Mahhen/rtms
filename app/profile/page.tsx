@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X } from "lucide-react"
+import {toast} from "sonner"
 
 interface UserData {
     user_id: string
@@ -42,7 +43,7 @@ export default function UserProfile() {
                 const data = await res.json()
                 setUser(data)
             } catch (err: any) {
-                alert("Error: " + err.message)
+                toast("Error: " + err.message)
             }
         }
         fetchUser()
@@ -73,20 +74,20 @@ export default function UserProfile() {
             })
             if (!res.ok) throw new Error("Update failed")
             setIsEditing(false)
-            alert("Profile updated successfully")
+            toast("Profile updated successfully")
         } catch (err: any) {
-            alert("Error: " + err.message)
+            toast("Error: " + err.message)
         }
     }
 
     const handleSavePassword = async () => {
         if (!user) return
         if (!passwordData.oldPassword || !passwordData.newPassword) {
-            alert("Please fill all password fields")
+            toast("Please fill all password fields")
             return
         }
         if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            alert("New passwords do not match")
+            toast("New passwords do not match")
             return
         }
         try {
@@ -104,9 +105,9 @@ export default function UserProfile() {
 
             setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" })
             setShowChangePasswordPopup(false)
-            alert("Password updated successfully")
+            toast("Password updated successfully")
         } catch (err: any) {
-            alert("Error: " + err.message)
+            toast("Error: " + err.message)
         }
     }
 
