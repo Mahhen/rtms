@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 const BASE_FARE_PER_KM = 0.5;
-const TIER_MULTIPLIERS: Record<string, number> = { "1AC": 3.0, "2AC": 2.0, "3AC": 1.5, Sleeper: 1.0 };
+const TIER_MULTIPLIERS: Record<string, number> = { "1AC": 2.7952755, "2AC": 1.657122, "3AC": 1.1524695, Sleeper: 1.0 };
 
 export default function PaymentPage() {
   const router = useRouter();

@@ -15,6 +15,7 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { CircleCheckBig } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import {
   Dialog,
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/input-otp";
 
 export function RegisterForm({
+  
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -41,7 +43,10 @@ export function RegisterForm({
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  
+  const router = useRouter();
   // ✅ Send OTP
+
   const sendOtp = async () => {
     if (!email) return toast("Enter email first!");
 
@@ -79,6 +84,7 @@ export function RegisterForm({
 
   // ✅ Register API Call
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    
     e.preventDefault();
 
     const target = e.target as typeof e.target & {
@@ -110,6 +116,7 @@ export function RegisterForm({
       const data = await res.json();
       if (res.ok) {
         toast(data.message);
+        router.push("/login");
       } else {
         toast(data.message || "Failed to register ❌");
       }
