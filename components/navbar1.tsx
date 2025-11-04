@@ -88,6 +88,10 @@ const Navbar1 = ({
       
 
     },
+    {
+      title: "Live Status",
+      url: "/train-status",
+    },
    
   ],
   auth = {

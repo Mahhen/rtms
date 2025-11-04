@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `https://www.railrestro.com/live-train-running-status/${trainNumber}?day=yesterday`;
+    const url = `https://www.railrestro.com/live-train-running-status/${trainNumber}?day=today`;
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
