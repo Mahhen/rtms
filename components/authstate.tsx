@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button"
-import router from "next/router";
+import {useRouter} from "next/navigation";
 import { LogOutIcon } from "lucide-react";
 
 const auth = {
@@ -11,9 +11,12 @@ const auth = {
 
 export const AuthState = () => {
       const [isAuth, setAuth] = useState(false);
+      const router = useRouter();
 
     const logoutFn = async () => {
-
+        await fetch("/api/logout", { method: "GET" });
+        setAuth(false);
+        router.push("/");
     }
     
     useEffect(() => {
@@ -22,8 +25,6 @@ export const AuthState = () => {
         method: "GET",
         })
         setAuth(res.ok);
-    
-        
     })();
     }, []);
 

@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyJwtToken } from './lib/auth'; // Using your auth helper
+import path from 'node:path/win32';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -17,7 +18,11 @@ export async function middleware(request: NextRequest) {
   console.log(`[MIDDLEWARE] Path is protected. Checking token...`);
   const token = request.cookies.get('session-token')?.value;
 
-  if (!token && pathname !== '/api/verify-token') {
+  if (!token) {
+    if (pathname === '/api/verify-token') {
+      console.log(`[MIDDLEWARE] No token for API request. Returning 401.`);
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    }
     console.log(`[MIDDLEWARE] No token. Redirecting to login.`);
     const signInUrl = new URL('/login', request.url); // Your login page
     signInUrl.searchParams.set('callbackUrl', pathname);
@@ -30,6 +35,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   } catch (error) {
     console.log(`[MIDDLEWARE] Token invalid/expired. Redirecting to login.`);
+    if (pathname === '/api/verify-token') {
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    }
     const signInUrl = new URL('/login', request.url);
     const response = NextResponse.redirect(signInUrl);
     response.cookies.delete('session-token'); // Clear the bad cookie
