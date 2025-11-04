@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   console.log(`[MIDDLEWARE] Path: ${pathname}`);
 
-  const protectedPaths = ["/my-bookings", "/payment", "/trains", "/api/bookings", "/api/my-bookings", "/api/userprofile"];
+  const protectedPaths = ["/my-bookings", "/payment", "/trains", "/api/bookings", "/api/my-bookings", "/api/userprofile", "/api/verify-token"];
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
   if (!isProtectedPath) {
@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
   console.log(`[MIDDLEWARE] Path is protected. Checking token...`);
   const token = request.cookies.get('session-token')?.value;
 
-  if (!token) {
+  if (!token && pathname !== '/api/verify-token') {
     console.log(`[MIDDLEWARE] No token. Redirecting to login.`);
     const signInUrl = new URL('/login', request.url); // Your login page
     signInUrl.searchParams.set('callbackUrl', pathname);

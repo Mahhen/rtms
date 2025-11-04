@@ -174,7 +174,12 @@ export default function MyBookingsPage() {
                 </div>
               </CardContent>
                 <CardFooter className="ml-auto">
-                    <Button className="primary bg-red-600 hover:bg-red-800" onClick={async () => {await handleCancel(booking.pnr);}}>Cancel</Button>
+                    <Button 
+                      className="primary bg-red-600 hover:bg-red-800" 
+                      hidden={new Date(booking.journey_date) < new Date()}
+                      onClick={async () => {await handleCancel(booking.pnr);}}>
+                        Cancel
+                        </Button>
                 </CardFooter>
             </Card>
           ))}
