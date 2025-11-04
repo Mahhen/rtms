@@ -7,9 +7,17 @@ import Booking from "@/models/booking";
 import Seats from "@/models/seats";
 import dbConnect from "@/lib/dbConnect";
 import { generateSeatsForTier } from "@/lib/seat-utils";
+import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
   console.log("\n--- [START] Booking Request ---");
+  
+  const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-03-31.basil",
+  });
+
+  const { paymentIntent, paymentIntentClientSecret } = await req.json();
+  const paymentInfo = await stripe.paymentIntents.retrieve(paymentIntent, { client_secret: paymentIntentClientSecret });
 
   await dbConnect();
   const session = await mongoose.startSession();
@@ -23,9 +31,8 @@ export async function POST(req: NextRequest) {
     }
     console.log(`LOG: Authenticated User ID: ${userId}`);
 
-    // --- Parse body ---
-    const body = await req.json();
-    const { train_no, journey_date, class_name, coach_name, src, dest, seats: selectedSeatsPayload, total_fare, seat_type } = body;
+    // --- get data from stripe ---
+    const { train_no, journey_date, class_name, coach_name, src, dest, seats: selectedSeatsPayload, total_fare, seat_type } = JSON.parse(paymentInfo.metadata.payload);
 
     if (!train_no || !journey_date || !class_name || !coach_name || !selectedSeatsPayload?.length) {
       throw new Error("Invalid request body. Missing required fields.");
@@ -108,7 +115,7 @@ export async function POST(req: NextRequest) {
     await session.commitTransaction();
     console.log(`LOG: Booking SUCCESS. PNR: ${pnr}`);
 
-    return NextResponse.json({ success: true, bookingDetails: { pnr } });
+    return NextResponse.json({ success: true, pnr: pnr});
 
   } catch (error: any) {
     await session.abortTransaction();
