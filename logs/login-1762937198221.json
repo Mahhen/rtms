@@ -1,0 +1,7 @@
+{
+  "status": 401,
+  "ok": false,
+  "json": {
+    "message": "Invalid email or password"
+  }
+}

@@ -1,0 +1,56 @@
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  timeout: 120000,                  // overall test timeout
+  expect: { timeout: 30000 },       // expect() timeout
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  reporter: [['list'], ['html', { open: 'never' }]],
+  use: {
+    baseURL: 'http://localhost:6213',   // <- your local port
+    headless: true,                     // set false for debugging
+    viewport: { width: 1280, height: 800 },
+    actionTimeout: 30000,
+    navigationTimeout: 60000,
+    ignoreHTTPSErrors: true,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  timeout: 120000,                  // overall test timeout
+  expect: { timeout: 30000 },       // expect() timeout
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  reporter: [['list'], ['html', { open: 'never' }]],
+  use: {
+    baseURL: 'http://localhost:6213',   // <- your local port
+    headless: true,                     // set false for debugging
+    viewport: { width: 1280, height: 800 },
+    actionTimeout: 30000,
+    navigationTimeout: 60000,
+    ignoreHTTPSErrors: true,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});
